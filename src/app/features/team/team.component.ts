@@ -5,13 +5,13 @@ import { AuthService } from '../../core/services/auth.service';
 import { Employee } from '../../core/models';
 import { EmployeeDetailModalComponent } from '../employees/employee-detail-modal.component';
 import { 
-  LucideMail, LucidePhone, LucideCalendarCheck 
+  LucideMail, LucidePhone 
 } from '@lucide/angular';
 
 @Component({
   selector: 'app-team',
   standalone: true,
-  imports: [CommonModule, LucideMail, LucidePhone, LucideCalendarCheck, EmployeeDetailModalComponent],
+  imports: [CommonModule, LucideMail, LucidePhone, EmployeeDetailModalComponent],
   templateUrl: './team.component.html'
 })
 export class TeamComponent implements OnInit {

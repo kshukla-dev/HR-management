@@ -6,7 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { PayrollRun, Payslip } from '../../core/models';
 import {
   LucideDownload, LucidePlay, LucideFileSpreadsheet,
-  LucideDollarSign, LucideEye, LucidePrinter, LucideX,
+  LucideEye, LucidePrinter, LucideX,
   LucideCheckCircle2, LucideAlertTriangle, LucideSearch,
   LucideShieldCheck
 } from '@lucide/angular';
@@ -20,7 +20,6 @@ import {
     LucideDownload,
     LucidePlay,
     LucideFileSpreadsheet,
-    LucideDollarSign,
     LucideEye,
     LucidePrinter,
     LucideX,

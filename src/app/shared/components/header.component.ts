@@ -8,7 +8,7 @@ import { ApiService } from '../../core/services/api.service';
 import { LayoutService } from '../../core/services/layout.service';
 import { NotificationItem, UserRole } from '../../core/models';
 import {
-  LucideSearch, LucideClock, LucideShield,
+  LucideSearch, LucideShield,
   LucideChevronDown, LucideCheck, LucideBell,
   LucideLogOut, LucideKeyRound, LucideUser,
   LucideX, LucideLock, LucideCheckCircle2, LucideAlertCircle,
@@ -22,7 +22,6 @@ import {
     CommonModule,
     FormsModule,
     LucideSearch,
-    LucideClock,
     LucideShield,
     LucideChevronDown,
     LucideCheck,

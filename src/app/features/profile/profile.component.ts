@@ -7,7 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { Employee, EmployeeKycDocument, CompanyIssuedDocument, KycDocumentCategory } from '../../core/models';
 import {
   LucideMail, LucidePhone, LucideCalendar,
-  LucideX, LucideEye, LucidePencil, LucideCamera, LucideCheck
+  LucideX, LucidePencil, LucideCamera, LucideCheck
 } from '@lucide/angular';
 
 type ProfileTab = 'personal' | 'employment' | 'salary' | 'documents';
@@ -22,7 +22,6 @@ type ProfileTab = 'personal' | 'employment' | 'salary' | 'documents';
     LucidePhone,
     LucideCalendar,
     LucideX,
-    LucideEye,
     LucidePencil,
     LucideCamera,
     LucideCheck

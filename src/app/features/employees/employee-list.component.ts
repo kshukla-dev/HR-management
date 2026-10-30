@@ -9,7 +9,7 @@ import { EmployeeDetailModalComponent } from './employee-detail-modal.component'
 import { AddEmployeeModalComponent } from './add-employee-modal.component';
 import {
   LucideDownload, LucideUserPlus, LucideSearch, LucideEye,
-  LucidePencil, LucideTrash2, LucideX, LucideShieldAlert,
+  LucidePencil, LucideTrash2, LucideShieldAlert,
   LucideUserX, LucideUserCheck, LucideRotateCcw, LucideMoreVertical
 } from '@lucide/angular';
 
@@ -27,7 +27,6 @@ import {
     LucideEye,
     LucidePencil,
     LucideTrash2,
-    LucideX,
     LucideShieldAlert,
     LucideUserX,
     LucideUserCheck,
