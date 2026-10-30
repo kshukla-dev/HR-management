@@ -1,0 +1,170 @@
+@import "tailwindcss";
+
+:root {
+  --theme-dark-navy: #080f24;
+  --theme-navy: #0b1736;
+  --theme-navy-light: #162a5c;
+  --theme-orange: #f97316;
+  --theme-orange-hover: #ea580c;
+  --theme-orange-light: #fff7ed;
+  --theme-white: #ffffff;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #f8fafc;
+  color: #0b1736;
+}
+
+::selection {
+  background-color: #f97316;
+  color: #ffffff;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #f97316;
+}
+
+/* Global Theme Overrides for Dark Navy */
+.bg-slate-900 {
+  background-color: #0b1736 !important;
+}
+.hover\:bg-slate-800:hover {
+  background-color: #162a5c !important;
+}
+.hover\:bg-slate-900:hover {
+  background-color: #080f24 !important;
+}
+.bg-slate-800 {
+  background-color: #162a5c !important;
+}
+.text-slate-900 {
+  color: #0b1736 !important;
+}
+
+/* Active tab underlines in orange */
+.border-slate-900 {
+  border-color: #f97316 !important;
+}
+
+/* Focus ring accent in orange */
+.focus\:ring-slate-900:focus {
+  --tw-ring-color: #f97316 !important;
+  border-color: #f97316 !important;
+}
+
+/* Sidebar Active Navigation in Dark Blue + Orange Accent + White */
+.active-nav {
+  background: linear-gradient(135deg, #0b1736 0%, #162a5c 100%) !important;
+  color: #ffffff !important;
+  border-left: 3.5px solid #f97316 !important;
+  box-shadow: 0 4px 12px rgba(11, 23, 54, 0.22) !important;
+}
+.active-nav svg {
+  color: #f97316 !important;
+}
+.active-nav span {
+  color: #ffffff !important;
+}
+.active-nav .badge-span {
+  background-color: #f97316 !important;
+  color: #ffffff !important;
+}
+
+/* Sidebar Hover Navigation in Light Orange & Orange text */
+aside a:not(.active-nav):hover {
+  background-color: #fff7ed !important;
+  color: #ea580c !important;
+}
+aside a:not(.active-nav):hover svg {
+  color: #f97316 !important;
+}
+
+/* Global Theme Brand Utility Classes */
+.bg-theme-navy {
+  background-color: #0b1736 !important;
+}
+.bg-theme-dark {
+  background-color: #080f24 !important;
+}
+.bg-theme-orange {
+  background-color: #f97316 !important;
+}
+.bg-theme-orange-hover:hover {
+  background-color: #ea580c !important;
+}
+.text-theme-navy {
+  color: #0b1736 !important;
+}
+.text-theme-orange {
+  color: #f97316 !important;
+}
+.border-theme-navy {
+  border-color: #0b1736 !important;
+}
+.border-theme-orange {
+  border-color: #f97316 !important;
+}
+
+/* Primary Orange Action Buttons */
+.btn-primary-orange {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25) !important;
+  transition: all 0.15s ease-in-out !important;
+}
+.btn-primary-orange:hover {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35) !important;
+}
+
+/* Dark Navy Action Buttons */
+.btn-primary-navy {
+  background: linear-gradient(135deg, #0b1736 0%, #162a5c 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(11, 23, 54, 0.2) !important;
+  transition: all 0.15s ease-in-out !important;
+}
+.btn-primary-navy:hover {
+  background: linear-gradient(135deg, #080f24 0%, #0b1736 100%) !important;
+  box-shadow: 0 4px 12px rgba(11, 23, 54, 0.3) !important;
+}
+
+/* Dedicated Print Layout for Official Payslips */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  header, aside, #mobile-menu-btn, .no-print {
+    display: none !important;
+  }
+  .fixed.inset-0 {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+  #printable-payslip {
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+

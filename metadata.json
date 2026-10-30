@@ -1,0 +1,6 @@
+{
+  "name": "PeopleWorks Enterprise HRMS",
+  "description": "Production-grade enterprise Human Resource Management System featuring core HR, attendance regularization, configurable multi-step workflow engine, payroll processing, recruitment, performance appraisals, and audit logging.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

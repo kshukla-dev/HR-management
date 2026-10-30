@@ -1,0 +1,376 @@
+<div class="p-6 space-y-6 max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-4">
+    <div>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900">
+        Attendance & Leave Calendar
+      </h1>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Monthly attendance record, scheduled working days, approved leaves, and company holidays.
+      </p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button
+        (click)="navigateToLeaves()"
+        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50 transition cursor-pointer"
+      >
+        <svg lucideBriefcase class="w-3.5 h-3.5 text-slate-500"></svg>
+        Apply for Leave
+      </button>
+      <a
+        [href]="api.getExportUrl('attendance')"
+        download
+        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-slate-900 rounded-md hover:bg-slate-800 transition shadow-xs"
+      >
+        <svg lucideDownload class="w-3.5 h-3.5"></svg>
+        Export Monthly Log
+      </a>
+    </div>
+  </div>
+
+  <!-- Month Navigation & Compact Summary Bar (Short Design) -->
+  <div class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+    <!-- Month Navigation Controls -->
+    <div class="flex items-center gap-2">
+      <button
+        (click)="prevMonth()"
+        title="Previous Month"
+        class="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 transition cursor-pointer"
+      >
+        <svg lucideChevronLeft class="w-4 h-4"></svg>
+      </button>
+
+      <div class="min-w-[160px] text-center">
+        <span class="text-sm font-bold text-slate-900 tracking-tight block">
+          {{ currentMonthLabel }}
+        </span>
+      </div>
+
+      <button
+        (click)="nextMonth()"
+        title="Next Month"
+        class="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 transition cursor-pointer"
+      >
+        <svg lucideChevronRight class="w-4 h-4"></svg>
+      </button>
+
+      <button
+        (click)="goToToday()"
+        [disabled]="isViewingCurrentMonth"
+        class="ml-1 px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1.5"
+      >
+        <svg lucideCalendar class="w-3.5 h-3.5 text-slate-500"></svg>
+        Today
+      </button>
+    </div>
+
+    <!-- Compact Summary Chips (Short Design as requested) -->
+    <div class="flex flex-wrap items-center gap-2 text-xs">
+      <button
+        (click)="activeFilter = 'all'"
+        class="px-3 py-1.5 rounded-lg font-medium transition cursor-pointer"
+        [ngClass]="activeFilter === 'all' ? 'bg-slate-900 text-white shadow-2xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+      >
+        All Days ({{ countAll }})
+      </button>
+
+      <button
+        (click)="activeFilter = 'present'"
+        class="px-3 py-1.5 rounded-lg font-medium transition cursor-pointer flex items-center gap-1.5"
+        [ngClass]="activeFilter === 'present' ? 'bg-emerald-700 text-white shadow-2xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+      >
+        <span class="w-2 h-2 rounded-full" [ngClass]="activeFilter === 'present' ? 'bg-white' : 'bg-emerald-500'"></span>
+        <span>Present ({{ countPresent }})</span>
+      </button>
+
+      <button
+        (click)="activeFilter = 'leave'"
+        class="px-3 py-1.5 rounded-lg font-medium transition cursor-pointer flex items-center gap-1.5"
+        [ngClass]="activeFilter === 'leave' ? 'bg-purple-700 text-white shadow-2xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+      >
+        <span class="w-2 h-2 rounded-full" [ngClass]="activeFilter === 'leave' ? 'bg-white' : 'bg-purple-500'"></span>
+        <span>On Leave ({{ countLeave }})</span>
+      </button>
+
+      <button
+        (click)="activeFilter = 'holiday'"
+        class="px-3 py-1.5 rounded-lg font-medium transition cursor-pointer flex items-center gap-1.5"
+        [ngClass]="activeFilter === 'holiday' ? 'bg-amber-700 text-white shadow-2xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+      >
+        <span class="w-2 h-2 rounded-full" [ngClass]="activeFilter === 'holiday' ? 'bg-white' : 'bg-amber-500'"></span>
+        <span>Holidays ({{ countHoliday }})</span>
+      </button>
+
+      <button
+        (click)="activeFilter = 'weekend'"
+        class="px-3 py-1.5 rounded-lg font-medium transition cursor-pointer flex items-center gap-1.5"
+        [ngClass]="activeFilter === 'weekend' ? 'bg-slate-700 text-white shadow-2xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+      >
+        <span class="w-2 h-2 rounded-full" [ngClass]="activeFilter === 'weekend' ? 'bg-white' : 'bg-rose-500'"></span>
+        <span>Weekly Offs ({{ countWeekend }})</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Interactive Monthly Calendar Grid -->
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+    <!-- Day of Week Header -->
+    <div class="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center text-[11px] font-semibold uppercase tracking-wider py-2.5">
+      @for (header of weekDayHeaders; track header; let idx = $index) {
+        <div [ngClass]="idx === 0 || idx === 6 ? 'text-rose-600' : 'text-slate-600'">
+          {{ header }}
+        </div>
+      }
+    </div>
+
+    <!-- Calendar Grid Cells -->
+    <div class="grid grid-cols-7 divide-x divide-y divide-slate-200 bg-slate-100">
+      @for (cell of calendarGrid; track cell.dateStr) {
+        <div
+          (click)="selectDay(cell)"
+          class="min-h-[96px] sm:min-h-[112px] p-2 bg-white transition-all duration-150 flex flex-col justify-between cursor-pointer group"
+          [ngClass]="{
+            'opacity-40 bg-slate-50/60': !cell.isCurrentMonth,
+            'ring-2 ring-indigo-500 ring-inset bg-indigo-50/20': cell.isToday,
+            'bg-purple-50/40': cell.status === 'On Leave' && cell.isCurrentMonth,
+            'bg-amber-50/30': cell.status === 'Holiday' && cell.isCurrentMonth,
+            'bg-slate-50/50': cell.isWeekend && cell.isCurrentMonth && cell.status !== 'On Leave'
+          }"
+        >
+          <!-- Cell Top: Date Number & Badge Indicator -->
+          <div class="flex items-center justify-between">
+            <span
+              class="text-xs font-bold font-mono tabular-nums"
+              [ngClass]="{
+                'text-indigo-700 bg-indigo-100 w-6 h-6 rounded-full flex items-center justify-center font-extrabold': cell.isToday,
+                'text-rose-600': cell.isWeekend && !cell.isToday,
+                'text-slate-800': !cell.isWeekend && !cell.isToday && cell.isCurrentMonth,
+                'text-slate-400': !cell.isCurrentMonth
+              }"
+            >
+              {{ cell.day }}
+            </span>
+
+            @if (cell.isToday) {
+              <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-600 text-white tracking-wide uppercase">
+                Today
+              </span>
+            } @else if (cell.isWeekend) {
+              <span class="w-2 h-2 rounded-full bg-rose-500 inline-block" title="Weekly Off"></span>
+            } @else if (cell.status === 'Present') {
+              <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block" title="Present"></span>
+            }
+          </div>
+
+          <!-- Cell Center: Status Details -->
+          <div class="my-1 flex-1 flex flex-col justify-center">
+            @if (cell.status === 'On Leave') {
+              <div class="p-1 rounded bg-purple-100/80 border border-purple-200/80 text-[10px] text-purple-900 leading-tight">
+                <div class="font-bold flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-purple-600 shrink-0"></span>
+                  <span class="truncate">{{ cell.leaveRequest?.leaveType || 'On Leave' }}</span>
+                </div>
+                <div class="text-[9px] text-purple-700 truncate mt-0.5 font-medium">
+                  {{ cell.leaveRequest?.status || 'Approved' }}
+                </div>
+              </div>
+            } @else if (cell.status === 'Holiday') {
+              <div class="p-1 rounded bg-amber-100/80 border border-amber-200/80 text-[10px] text-amber-900 leading-tight">
+                <div class="font-bold flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></span>
+                  <span class="truncate">Holiday</span>
+                </div>
+                <div class="text-[9px] text-amber-800 truncate mt-0.5 font-medium" [title]="cell.holiday?.name">
+                  {{ cell.holiday?.name }}
+                </div>
+              </div>
+            } @else if (cell.isWeekend) {
+              <div class="text-center py-1">
+                <span class="text-[10px] font-medium text-slate-400 block">Weekly Off</span>
+              </div>
+            }
+          </div>
+
+          <!-- Cell Bottom: Subtle Day Name -->
+          <div class="text-[9px] text-slate-400 text-right">
+            {{ cell.dayName.substring(0, 3) }}
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Selected Day Detail Banner -->
+  @if (selectedDayObj) {
+    <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div 
+          class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+          [ngClass]="{
+            'bg-purple-100 text-purple-700': selectedDayObj.status === 'On Leave',
+            'bg-amber-100 text-amber-700': selectedDayObj.status === 'Holiday',
+            'bg-slate-100 text-slate-600': selectedDayObj.status === 'Weekly Off',
+            'bg-emerald-100 text-emerald-700': selectedDayObj.status === 'Present',
+            'bg-blue-100 text-blue-700': selectedDayObj.status === 'Scheduled'
+          }"
+        >
+          <svg lucideCalendarCheck class="w-5 h-5"></svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-sm font-bold text-slate-900 font-mono">
+              {{ selectedDayObj.dateStr }} ({{ selectedDayObj.dayName }})
+            </h3>
+            <span
+              class="text-[10px] font-semibold px-2 py-0.5 rounded border"
+              [ngClass]="selectedDayObj.badgeClass"
+            >
+              {{ selectedDayObj.statusLabel }}
+            </span>
+            @if (selectedDayObj.isToday) {
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                Today
+              </span>
+            }
+          </div>
+          <p class="text-xs text-slate-600 mt-0.5">
+            {{ selectedDayObj.details }}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 text-xs">
+        <span class="text-slate-500">Category:</span>
+        <span class="font-medium text-slate-900 bg-slate-100 px-2.5 py-1 rounded-md">
+          {{ selectedDayObj.category }}
+        </span>
+      </div>
+    </div>
+  }
+
+  <!-- Monthly Attendance & Leave Register Table -->
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+    <div class="p-4 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <svg lucideCalendarDays class="w-4 h-4 text-slate-500"></svg>
+        <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider">
+          Monthly Attendance & Leave Register ({{ currentMonthLabel }})
+        </h2>
+      </div>
+
+      <!-- Filter Chips -->
+      <div class="flex flex-wrap items-center gap-1.5 text-xs">
+        <button
+          (click)="activeFilter = 'all'"
+          class="px-2.5 py-1 rounded-md font-medium transition cursor-pointer"
+          [ngClass]="activeFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+        >
+          All Days ({{ countAll }})
+        </button>
+        <button
+          (click)="activeFilter = 'present'"
+          class="px-2.5 py-1 rounded-md font-medium transition cursor-pointer"
+          [ngClass]="activeFilter === 'present' ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+        >
+          Present ({{ countPresent }})
+        </button>
+        <button
+          (click)="activeFilter = 'leave'"
+          class="px-2.5 py-1 rounded-md font-medium transition cursor-pointer"
+          [ngClass]="activeFilter === 'leave' ? 'bg-purple-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+        >
+          On Leave ({{ countLeave }})
+        </button>
+        <button
+          (click)="activeFilter = 'holiday'"
+          class="px-2.5 py-1 rounded-md font-medium transition cursor-pointer"
+          [ngClass]="activeFilter === 'holiday' ? 'bg-amber-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+        >
+          Holidays ({{ countHoliday }})
+        </button>
+        <button
+          (click)="activeFilter = 'weekend'"
+          class="px-2.5 py-1 rounded-md font-medium transition cursor-pointer"
+          [ngClass]="activeFilter === 'weekend' ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+        >
+          Weekly Offs ({{ countWeekend }})
+        </button>
+      </div>
+    </div>
+
+    <!-- Register Table -->
+    <div class="overflow-x-auto overflow-y-auto max-h-[460px]">
+      <table class="w-full text-xs text-left">
+        <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-[11px] border-b border-slate-200 sticky top-0 z-10 shadow-xs">
+          <tr>
+            <th class="py-3 px-4 font-semibold bg-slate-50">Date</th>
+            <th class="py-3 px-4 font-semibold bg-slate-50">Day</th>
+            <th class="py-3 px-4 font-semibold bg-slate-50">Attendance Status</th>
+            <th class="py-3 px-4 font-semibold bg-slate-50">Details / Remarks</th>
+            <th class="py-3 px-4 font-semibold bg-slate-50">Category</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          @if (loading) {
+            <tr>
+              <td colspan="5" class="py-8 text-center text-slate-400">Loading attendance data...</td>
+            </tr>
+          } @else if (filteredTableDays.length === 0) {
+            <tr>
+              <td colspan="5" class="py-8 text-center text-slate-400">No records found for the selected filter.</td>
+            </tr>
+          } @else {
+            @for (rec of filteredTableDays; track rec.dateStr) {
+              <tr 
+                (click)="selectDay(rec)"
+                class="hover:bg-slate-50/80 transition-colors cursor-pointer"
+                [ngClass]="rec.dateStr === selectedDateStr ? 'bg-slate-50/60' : ''"
+              >
+                <td class="py-3 px-4 font-medium font-mono text-slate-900">
+                  <div class="flex items-center gap-1.5">
+                    <span>{{ rec.dateStr }}</span>
+                    @if (rec.isToday) {
+                      <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-600 text-white uppercase">Today</span>
+                    }
+                  </div>
+                </td>
+                <td class="py-3 px-4 text-slate-600">
+                  {{ rec.dayName }}
+                </td>
+                <td class="py-3 px-4">
+                  <span
+                    class="text-[10px] font-semibold px-2 py-0.5 rounded border inline-flex items-center gap-1"
+                    [ngClass]="rec.badgeClass"
+                  >
+                    @if (rec.status === 'Present') {
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    } @else if (rec.status === 'On Leave') {
+                      <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                    } @else if (rec.status === 'Holiday') {
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                    } @else if (rec.status === 'Weekly Off') {
+                      <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+                    }
+                    {{ rec.statusLabel }}
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-slate-700">
+                  {{ rec.details }}
+                </td>
+                <td class="py-3 px-4 text-slate-500 font-medium">
+                  {{ rec.category }}
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Table Footer with Row Info -->
+    <div class="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
+      <span>Showing {{ filteredTableDays.length }} days</span>
+      <span class="text-slate-400">Scroll table to view all entries</span>
+    </div>
+  </div>
+</div>

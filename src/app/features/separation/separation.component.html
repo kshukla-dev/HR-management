@@ -1,0 +1,217 @@
+<div class="p-6 space-y-6 max-w-7xl mx-auto">
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-4">
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-slate-900">
+            Separation, Exit Formalities & Full and Final (F&F)
+          </h1>
+          <p class="text-xs text-slate-500 mt-0.5">
+            Standard resignation workflows, departmental asset handovers, relieving certificates, and terminal payout settlements.
+          </p>
+        </div>
+        <button
+          (click)="showApplyModal.set(true)"
+          class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 rounded-md hover:bg-rose-100 transition-colors"
+        >
+          <svg lucideLogOut class="w-3.5 h-3.5"></svg>
+          Submit Resignation
+        </button>
+      </div>
+
+      <!-- Separation Records -->
+      <div class="space-y-6">
+        @for (sep of separations(); track sep.id) {
+          <div class="bg-white border border-slate-200 rounded-lg p-6 space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-100 gap-4">
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-base font-bold text-slate-900">{{ sep.employeeName }}</h2>
+                  <span class="text-xs font-mono text-slate-500">({{ sep.department }} · {{ sep.designation }})</span>
+                </div>
+                <div class="text-xs text-slate-500 mt-1">
+                  Resignation Date: <span class="font-mono text-slate-800">{{ sep.resignationDate }}</span> · Official LWD: <span class="font-mono font-semibold text-slate-900">{{ sep.officialLwd }}</span>
+                </div>
+                <div class="text-xs text-slate-600 mt-1 italic">
+                  "{{ sep.reason }}" — {{ sep.comments }}
+                </div>
+              </div>
+
+              <div class="text-right">
+                <span class="text-[11px] font-semibold px-2.5 py-1 rounded bg-amber-50 text-amber-800">
+                  {{ sep.status }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Department Clearance Checklist -->
+            <div>
+              <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">
+                Mandatory Clearance & Asset Recovery Protocol
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                @for (c of sep.clearances; track c.department) {
+                  <div class="p-3 bg-slate-50 border border-slate-200 rounded text-xs space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold text-slate-800">{{ c.department }}</span>
+                      <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                        [ngClass]="c.status === 'Cleared' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'"
+                      >
+                        {{ c.status }}
+                      </span>
+                    </div>
+                    @if (c.remarks) {
+                      <p class="text-[11px] text-slate-500">{{ c.remarks }}</p>
+                    }
+                    @if (c.status !== 'Cleared' && canClear()) {
+                      <button
+                        (click)="handleClearDepartment(sep.id, c.department)"
+                        class="w-full mt-2 px-2 py-1 text-[11px] bg-slate-900 text-white rounded font-medium hover:bg-slate-800"
+                      >
+                        Sign Off Clearance
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Full & Final Settlement Summary -->
+            @if (sep.finalSettlement) {
+              <div class="pt-4 border-t border-slate-100 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                  <span class="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Full & Final (F&F) Settlement Projection
+                  </span>
+                  <span class="text-[11px] font-semibold text-slate-500">
+                    {{ sep.finalSettlement.isSettled ? 'Disbursed' : 'Awaiting Final Clearance' }}
+                  </span>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 text-xs">
+                  <div>
+                    <span class="text-slate-500">Salary Due:</span>
+                    <div class="font-mono font-semibold text-slate-900">₹{{ sep.finalSettlement.salaryDue.toLocaleString('en-IN') }}</div>
+                  </div>
+                  <div>
+                    <span class="text-slate-500">Leave Encashment:</span>
+                    <div class="font-mono font-semibold text-slate-900">₹{{ sep.finalSettlement.leaveEncashment.toLocaleString('en-IN') }}</div>
+                  </div>
+                  <div>
+                    <span class="text-slate-500">Notice Recovery:</span>
+                    <div class="font-mono font-semibold text-slate-900">₹{{ sep.finalSettlement.noticeRecovery.toLocaleString('en-IN') }}</div>
+                  </div>
+                  <div>
+                    <span class="text-slate-500">Total Net Settlement:</span>
+                    <div class="font-mono font-bold text-emerald-700 text-sm">₹{{ sep.finalSettlement.totalPayable.toLocaleString('en-IN') }}</div>
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (canFinalizeExit()) {
+              <div class="pt-3 flex items-center justify-between border-t border-slate-100">
+                <span class="text-xs text-slate-500">
+                  Separation Status: <strong>{{ sep.status }}</strong>
+                </span>
+                @if (sep.status !== 'Settled') {
+                  <button
+                    type="button"
+                    (click)="handleFinalizeExit(sep.id)"
+                    class="px-3.5 py-1.5 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+                    title="Complete exit formalities and revoke platform login access immediately"
+                  >
+                    <svg lucideLogOut class="w-3.5 h-3.5"></svg>
+                    <span>Finalize Exit & Revoke Login Access</span>
+                  </button>
+                } @else {
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-rose-100 text-rose-800 text-xs font-bold border border-rose-200">
+                    Exit Finalized (Settled) · Login Revoked
+                  </span>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Resignation Modal -->
+      @if (showApplyModal()) {
+        <div 
+          class="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150"
+          (click)="showApplyModal.set(false)"
+        >
+          <div 
+            class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md my-auto max-h-[calc(100vh-2rem)] sm:max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50 shrink-0">
+              <h3 class="text-sm font-bold text-slate-900">Submit Resignation Notice</h3>
+              <button (click)="showApplyModal.set(false)" class="text-slate-400 hover:text-slate-700 p-1 rounded-md hover:bg-slate-200/60 transition cursor-pointer">
+                <svg lucideX class="w-4 h-4"></svg>
+              </button>
+            </div>
+
+            <form (ngSubmit)="handleApplyResignation()" class="flex flex-col flex-1 overflow-hidden text-xs">
+              <div class="p-5 space-y-4 overflow-y-auto flex-1">
+                <div class="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs leading-relaxed">
+                  Standard company contractual notice period is 60 calendar days.
+                </div>
+
+                <div>
+                  <label class="block text-slate-700 font-medium mb-1">Reason for Resignation *</label>
+                  <select
+                    [(ngModel)]="reason"
+                    name="reason"
+                    class="w-full px-3 py-1.5 border border-slate-300 rounded focus:ring-1 focus:ring-slate-900 outline-none bg-white"
+                  >
+                    <option value="Career Growth / New Opportunity">Career Growth / New Opportunity</option>
+                    <option value="Higher Education / Studies Abroad">Higher Education / Studies Abroad</option>
+                    <option value="Relocation / Family Relocation">Relocation / Family Relocation</option>
+                    <option value="Health / Personal Reasons">Health / Personal Reasons</option>
+                    <option value="Entrepreneurship / Starting Venture">Entrepreneurship / Starting Venture</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-slate-700 font-medium mb-1">Proposed Last Working Day (LWD) *</label>
+                  <input
+                    type="date"
+                    required
+                    [(ngModel)]="proposedLwd"
+                    name="proposedLwd"
+                    class="w-full px-3 py-1.5 border border-slate-300 rounded focus:ring-1 focus:ring-slate-900 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-slate-700 font-medium mb-1">Remarks & Transition Plan</label>
+                  <textarea
+                    rows="3"
+                    [(ngModel)]="comments"
+                    name="comments"
+                    placeholder="Outline key handover deliverables..."
+                    class="w-full px-3 py-1.5 border border-slate-300 rounded focus:ring-1 focus:ring-slate-900 outline-none"
+                  ></textarea>
+                </div>
+              </div>
+
+              <div class="flex justify-end gap-3 p-4 border-t border-slate-200 bg-slate-50/60 shrink-0">
+                <button
+                  type="button"
+                  (click)="showApplyModal.set(false)"
+                  class="px-4 py-2 text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  [disabled]="submitting()"
+                  class="px-4 py-2 bg-rose-600 text-white rounded-lg font-medium hover:bg-rose-700 disabled:opacity-50 cursor-pointer"
+                >
+                  {{ submitting() ? 'Submitting...' : 'Submit Notice to Line Manager' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      }
+    </div>

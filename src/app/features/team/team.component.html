@@ -1,0 +1,87 @@
+<div class="p-6 space-y-6 max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-4">
+    <div>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900">
+        {{ filterScope() === 'direct' ? 'My Direct Reports Roster' : 'Department & Team Roster' }}
+      </h1>
+      <p class="text-xs text-slate-500 mt-0.5">
+        {{ filterScope() === 'direct'
+        ? 'Employees assigned to you as Reporting Manager (' + (currentUser()?.name || '') + ') for leave approvals and
+        reviews.'
+        : 'Supervisory oversight for team schedules, goal reviews, capacity planning, and skills enablement.' }}
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="flex items-center bg-slate-100 p-1 rounded-md text-xs">
+        <button (click)="setScope('direct')" class="px-3 py-1 rounded font-medium transition-colors cursor-pointer"
+          [ngClass]="filterScope() === 'direct' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'">
+          Direct Reports ({{ directReportsCount() }})
+        </button>
+        <button (click)="setScope('all')" class="px-3 py-1 rounded font-medium transition-colors cursor-pointer"
+          [ngClass]="filterScope() === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'">
+          All Team
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Team Cards Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @for (member of teamMembers(); track member.id) {
+    <div class="bg-white border border-slate-200 rounded-lg p-5 space-y-4 hover:shadow-sm transition-all">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <img [src]="member.avatarUrl" [alt]="member.firstName"
+            class="w-12 h-12 rounded-full object-cover border border-slate-200" />
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm">
+              {{ member.firstName }} {{ member.lastName }}
+            </h3>
+            <div class="text-xs text-slate-600 font-medium">{{ member.designation }}</div>
+            <div class="text-[11px] font-mono text-slate-400">{{ member.employeeCode }}</div>
+          </div>
+        </div>
+        <span class="text-[10px] font-semibold px-2 py-0.5 rounded" [ngClass]="{
+                  'bg-emerald-50 text-emerald-700': member.employmentStatus === 'Active',
+                  'bg-amber-50 text-amber-700': member.employmentStatus === 'Notice Period',
+                  'bg-slate-100 text-slate-700': member.employmentStatus !== 'Active' && member.employmentStatus !== 'Notice Period'
+                }">
+          {{ member.employmentStatus }}
+        </span>
+      </div>
+
+      <div class="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-slate-100">
+        <div class="flex items-center gap-2">
+          <svg lucideMail class="w-3.5 h-3.5 text-slate-400"></svg>
+          <span class="truncate">{{ member.email }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg lucidePhone class="w-3.5 h-3.5 text-slate-400"></svg>
+          <span>{{ member.phone }}</span>
+        </div>
+
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+        <div class="text-[11px] text-slate-500">
+          <div>Grade: <span class="font-semibold text-slate-800">{{ member.jobLevel }} · {{ member.band }}</span>
+          </div>
+          <div class="text-[10px] text-blue-700 mt-0.5">Mgr: <strong>{{ member.reportingManagerName }}</strong></div>
+        </div>
+        @if (canInspectProfile()) {
+        <button (click)="selectedEmp.set(member)"
+          class="text-xs font-semibold text-slate-900 hover:text-slate-700 hover:underline cursor-pointer">
+          Inspect Profile
+        </button>
+        }
+      </div>
+    </div>
+    }
+  </div>
+
+  @if (selectedEmp(); as emp) {
+  <app-employee-detail-modal [employee]="emp" (close)="selectedEmp.set(null)" (update)="onEmployeeUpdated($event)"
+    (edit)="onEmployeeUpdated($event)" (delete)="onEmployeeUpdated($event)"></app-employee-detail-modal>
+  }
+</div>

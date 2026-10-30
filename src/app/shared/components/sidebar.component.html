@@ -1,0 +1,192 @@
+<!-- Desktop Persistent Sidebar -->
+<aside class="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col shrink-0 overflow-y-auto">
+  <ng-container *ngTemplateOutlet="navContent"></ng-container>
+</aside>
+
+<!-- Mobile Off-Canvas Drawer (Slides in on mobile when hamburger is clicked) -->
+@if (layout.isSidebarOpen()) {
+  <!-- Backdrop -->
+  <div class="fixed inset-0 z-50 bg-[#080f24]/75 backdrop-blur-xs md:hidden animate-in fade-in duration-200"
+       (click)="layout.closeSidebar()"></div>
+
+  <!-- Mobile Drawer Panel -->
+  <aside class="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white shadow-2xl flex flex-col md:hidden animate-in slide-in-from-left duration-200 overflow-y-auto">
+    <!-- Mobile Drawer Header with Close Button -->
+    <div class="p-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
+      <a href="https://jacksonandfrank.com/" target="_blank" rel="noopener noreferrer"
+        class="flex items-center gap-2 cursor-pointer group"
+        title="Visit Jackson and Frank (https://jacksonandfrank.com/)">
+        <img src="https://admin.jacksonandfrank.com/images/logo/jf_logo.webp" alt="Logo" class="h-7 w-auto object-contain transition-transform group-hover:scale-105" />
+        <div class="flex flex-col">
+          <span class="text-xs font-bold text-[#0b1736] leading-tight group-hover:text-orange-600 transition-colors">Jackson and frank</span>
+          <span class="text-[10px] text-orange-600 font-bold leading-tight">(People Work)</span>
+        </div>
+      </a>
+      <button id="close-mobile-menu-btn" (click)="layout.closeSidebar()" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer" aria-label="Close menu">
+        <svg lucideX class="w-4 h-4"></svg>
+      </button>
+    </div>
+
+    <!-- Navigation Content -->
+    <ng-container *ngTemplateOutlet="navContent"></ng-container>
+  </aside>
+}
+
+<ng-template #navContent>
+  <div (click)="onNavClick()" class="flex flex-col flex-1 min-h-0">
+    <div class="p-3 space-y-6 flex-1 overflow-y-auto">
+      <!-- Main Dashboard -->
+      <div>
+        <div class="px-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          General
+        </div>
+        <div class="space-y-0.5">
+          <a routerLink="/dashboard" routerLinkActive="bg-slate-900 text-white active-nav"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <div class="flex items-center gap-2.5 truncate">
+              <svg lucideLayoutDashboard class="w-4 h-4 shrink-0"></svg>
+              <span class="truncate">Dashboard</span>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Self Service Section -->
+      <div>
+        <div class="px-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          My Self-Service
+        </div>
+        <div class="space-y-0.5">
+          <a routerLink="/profile" routerLinkActive="bg-slate-900 text-white active-nav"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <div class="flex items-center gap-2.5 truncate">
+              <svg lucideUser class="w-4 h-4 shrink-0"></svg>
+              <span class="truncate">My Profile</span>
+            </div>
+          </a>
+          <a routerLink="/attendance" routerLinkActive="bg-slate-900 text-white active-nav"
+            class="w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <div class="flex items-center gap-2.5 truncate">
+              <svg lucideCalendarCheck class="w-4 h-4 shrink-0"></svg>
+              <span class="truncate">My Attendance</span>
+            </div>
+          </a>
+          <a routerLink="/leave" routerLinkActive="bg-slate-900 text-white active-nav"
+            class="w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <div class="flex items-center gap-2.5 truncate">
+              <svg lucideCalendarDays class="w-4 h-4 shrink-0"></svg>
+              <span class="truncate">My Leaves</span>
+            </div>
+          </a>
+          <a routerLink="/payroll" routerLinkActive="bg-slate-900 text-white active-nav"
+            class="w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <div class="flex items-center gap-2.5 truncate">
+              <svg lucideReceiptText class="w-4 h-4 shrink-0"></svg>
+              <span class="truncate">My Salary & Payslips</span>
+            </div>
+          </a>
+          <a routerLink="/travel-expenses" routerLinkActive="bg-slate-900 text-white active-nav"
+            class="w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <div class="flex items-center gap-2.5 truncate">
+              <svg lucidePlane class="w-4 h-4 shrink-0"></svg>
+              <span class="truncate">Travel & Expenses</span>
+            </div>
+          </a>
+          <a routerLink="/team" routerLinkActive="bg-slate-900 text-white active-nav"
+            class="w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <div class="flex items-center gap-2.5 truncate">
+              <svg lucideUsers class="w-4 h-4 shrink-0"></svg>
+              <span class="truncate">Team Roster</span>
+            </div>
+          </a>
+          <a routerLink="/separation" routerLinkActive="bg-slate-900 text-white active-nav"
+            class="w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <div class="flex items-center gap-2.5 truncate">
+              <svg lucideLogOut class="w-4 h-4 shrink-0"></svg>
+              <span class="truncate">Resignation & Exit</span>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Manager Approvals Portal -->
+      @if (isManager()) {
+      <div>
+        <div class="px-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          Manager Portal
+        </div>
+        <div class="space-y-0.5">
+          <a routerLink="/approvals" routerLinkActive="bg-slate-900 text-white active-nav"
+            class="w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <div class="flex items-center gap-2.5 truncate">
+              <svg lucideCheckSquare class="w-4 h-4 shrink-0"></svg>
+              <span class="truncate">Approvals Hub</span>
+            </div>
+            <span class="text-[10px] px-1.5 py-0.5 rounded font-mono tabular-nums badge-span bg-amber-100 text-amber-800">
+              2
+            </span>
+          </a>
+        </div>
+      </div>
+      }
+
+      <!-- HR Operations -->
+      @if (isHR()) {
+      <div>
+        <div class="px-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          HR & Talent
+        </div>
+        <div class="space-y-0.5">
+          <a routerLink="/employees" routerLinkActive="bg-slate-900 text-white active-nav"
+            class="w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <div class="flex items-center gap-2.5 truncate">
+              <svg lucideUsers class="w-4 h-4 shrink-0"></svg>
+              <span class="truncate">Employee Master</span>
+            </div>
+          </a>
+        </div>
+      </div>
+      }
+
+      <!-- Payroll Operations -->
+      @if (isPayroll() || isAdmin()) {
+      <div>
+        <div class="px-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          Payroll & Accounts
+        </div>
+        <div class="space-y-0.5">
+          <a routerLink="/payroll" routerLinkActive="bg-slate-900 text-white active-nav"
+            class="w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <div class="flex items-center gap-2.5 truncate">
+              <svg lucideFileSpreadsheet class="w-4 h-4 shrink-0"></svg>
+              <span class="truncate">Payroll Processing</span>
+            </div>
+          </a>
+        </div>
+      </div>
+      }
+    </div>
+
+    <!-- Bottom Account Session Info -->
+    <div class="mt-auto p-3 border-t border-slate-200 bg-slate-50/50 space-y-2 shrink-0">
+      <button
+        (click)="logout()"
+        class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+        title="Sign out of current account"
+      >
+        <div class="flex items-center gap-2">
+          <svg lucideLogOut class="w-4 h-4"></svg>
+          <span>Logout Session</span>
+        </div>
+        <span class="text-[10px] text-slate-400 font-normal">Sign Out</span>
+      </button>
+
+      <div class="px-3 py-1 text-[11px] text-slate-500">
+        <div class="font-semibold text-slate-800">Jackson and frank (People Work)</div>
+        <div>Enterprise Edition v4.2</div>
+      </div>
+    </div>
+  </div>
+</ng-template>

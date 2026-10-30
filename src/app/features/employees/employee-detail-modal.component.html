@@ -1,0 +1,867 @@
+<div class="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-slate-900/60 backdrop-blur-xs p-2 sm:p-5 overflow-y-auto animate-in fade-in duration-150">
+      <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-4xl my-auto max-h-[calc(100vh-1rem)] sm:max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b border-slate-200 bg-slate-50 gap-3.5">
+          <div class="flex items-center gap-3.5 sm:gap-4 w-full sm:w-auto">
+            <img
+              [src]="currentEmp.avatarUrl"
+              [alt]="currentEmp.firstName + ' ' + currentEmp.lastName"
+              class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-white shadow-sm shrink-0"
+            />
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <h2 class="text-base sm:text-lg font-bold text-slate-900">
+                  {{ currentEmp.firstName }} {{ currentEmp.lastName }}
+                </h2>
+                <span class="text-[10px] sm:text-xs font-mono bg-slate-200 text-slate-800 px-1.5 sm:px-2 py-0.5 rounded">
+                  {{ currentEmp.employeeCode }}
+                </span>
+                <span
+                  class="text-[10px] sm:text-[11px] font-semibold px-1.5 sm:px-2 py-0.5 rounded"
+                  [ngClass]="currentEmp.employmentStatus === 'Active' ? 'bg-emerald-100 text-emerald-800' : (currentEmp.employmentStatus === 'Notice Period' ? 'bg-amber-100 text-amber-800' : (currentEmp.employmentStatus === 'Terminated' || currentEmp.isLoginBlocked ? 'bg-rose-100 text-rose-800 font-bold border border-rose-300' : 'bg-slate-200 text-slate-800'))"
+                >
+                  {{ (currentEmp.employmentStatus === 'Terminated' || currentEmp.isLoginBlocked) ? 'Terminated (Access Blocked)' : currentEmp.employmentStatus }}
+                </span>
+              </div>
+              <p class="text-xs text-slate-600 mt-0.5 sm:mt-1 font-medium truncate sm:whitespace-normal">
+                {{ currentEmp.designation }} · {{ currentEmp.department }} · {{ currentEmp.location }}
+              </p>
+              <div class="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 text-xs text-slate-500 mt-1.5 sm:mt-2">
+                <span class="flex items-center gap-1 break-all sm:break-normal">
+                  <svg lucideMail class="w-3.5 h-3.5 shrink-0"></svg> {{ currentEmp.email }}
+                </span>
+                <span class="flex items-center gap-1">
+                  <svg lucidePhone class="w-3.5 h-3.5 shrink-0"></svg> {{ currentEmp.phone }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-2 w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-slate-200/80">
+            @if (canTerminateEmployee) {
+              @if (currentEmp.employmentStatus === 'Terminated' || currentEmp.isLoginBlocked) {
+                <button
+                  type="button"
+                  (click)="reactivate.emit(currentEmp)"
+                  class="px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-white border border-emerald-300 hover:bg-emerald-50 rounded-lg transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  title="Restore Portal Login Access"
+                >
+                  <svg lucideUserCheck class="w-3.5 h-3.5 text-emerald-600"></svg>
+                  <span>Restore Login</span>
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  (click)="terminate.emit(currentEmp)"
+                  class="px-2.5 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-300 hover:bg-rose-100 rounded-lg transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  title="Terminate Employee & Revoke Login Access"
+                >
+                  <svg lucideUserX class="w-3.5 h-3.5 text-rose-600"></svg>
+                  <span>Terminate & Revoke Login</span>
+                </button>
+              }
+            }
+            @if (canEditEmployee) {
+              <button
+                type="button"
+                (click)="edit.emit(currentEmp)"
+                class="px-2.5 py-1.5 text-xs font-semibold text-blue-700 bg-white border border-blue-200 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                title="Edit Employee Master"
+              >
+                <svg lucidePencil class="w-3.5 h-3.5 text-blue-600"></svg>
+                <span>Edit Profile</span>
+              </button>
+            }
+            @if (canDeleteEmployee) {
+              <button
+                type="button"
+                (click)="delete.emit(currentEmp)"
+                class="px-2.5 py-1.5 text-xs font-semibold text-rose-700 bg-white border border-rose-200 hover:bg-rose-50 rounded-lg transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                title="Delete Employee Record"
+              >
+                <svg lucideTrash2 class="w-3.5 h-3.5 text-rose-600"></svg>
+                <span>Delete</span>
+              </button>
+            }
+            <button
+              type="button"
+              (click)="close.emit()"
+              class="p-1.5 text-slate-400 hover:text-slate-700 rounded-md transition-colors cursor-pointer"
+            >
+              <svg lucideX class="w-5 h-5"></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-slate-200 bg-white px-3 sm:px-6 overflow-x-auto no-scrollbar scroll-smooth">
+          <button
+            (click)="activeTab = 'personal'"
+            class="py-2.5 sm:py-3 px-3 sm:px-4 text-xs font-medium border-b-2 whitespace-nowrap shrink-0 transition-colors cursor-pointer"
+            [ngClass]="activeTab === 'personal' ? 'border-slate-900 text-slate-900 font-semibold' : 'border-transparent text-slate-500 hover:text-slate-800'"
+          >
+            Personal & Contact
+          </button>
+          <button
+            (click)="activeTab = 'employment'"
+            class="py-2.5 sm:py-3 px-3 sm:px-4 text-xs font-medium border-b-2 whitespace-nowrap shrink-0 transition-colors cursor-pointer"
+            [ngClass]="activeTab === 'employment' ? 'border-slate-900 text-slate-900 font-semibold' : 'border-transparent text-slate-500 hover:text-slate-800'"
+          >
+            Organization & Role
+          </button>
+          @if (canViewSalary) {
+            <button
+              (click)="activeTab = 'salary'"
+              class="py-2.5 sm:py-3 px-3 sm:px-4 text-xs font-medium border-b-2 whitespace-nowrap shrink-0 transition-colors cursor-pointer"
+              [ngClass]="activeTab === 'salary' ? 'border-slate-900 text-slate-900 font-semibold' : 'border-transparent text-slate-500 hover:text-slate-800'"
+            >
+              Compensation & Salary
+            </button>
+          }
+          <button
+            (click)="activeTab = 'documents'"
+            class="py-2.5 sm:py-3 px-3 sm:px-4 text-xs font-medium border-b-2 whitespace-nowrap shrink-0 transition-colors cursor-pointer"
+            [ngClass]="activeTab === 'documents' ? 'border-slate-900 text-slate-900 font-semibold' : 'border-transparent text-slate-500 hover:text-slate-800'"
+          >
+            Documents
+          </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="p-4 sm:p-6 overflow-y-auto flex-1 text-xs">
+          <!-- Personal Tab -->
+          @if (activeTab === 'personal') {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-4">
+                <h3 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] pb-1 border-b border-slate-100">
+                  Demographic Details
+                </h3>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <span class="text-slate-500">Date of Birth:</span>
+                    <div class="font-semibold text-slate-800">{{ currentEmp.dateOfBirth }}</div>
+                  </div>
+                  <div>
+                    <span class="text-slate-500">Gender:</span>
+                    <div class="font-semibold text-slate-800">{{ currentEmp.gender }}</div>
+                  </div>
+                  <div>
+                    <span class="text-slate-500">Blood Group:</span>
+                    <div class="font-semibold text-slate-800">{{ currentEmp.bloodGroup }}</div>
+                  </div>
+                  <div>
+                    <span class="text-slate-500">Marital Status:</span>
+                    <div class="font-semibold text-slate-800">{{ currentEmp.maritalStatus }}</div>
+                  </div>
+                </div>
+
+                <h3 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] pt-2 pb-1 border-b border-slate-100">
+                  Residential Addresses
+                </h3>
+                <div>
+                  <span class="text-slate-500">Current Address:</span>
+                  <div class="font-medium text-slate-800 mt-0.5">{{ currentEmp.currentAddress }}</div>
+                </div>
+                <div>
+                  <span class="text-slate-500">Permanent Address:</span>
+                  <div class="font-medium text-slate-800 mt-0.5">{{ currentEmp.permanentAddress }}</div>
+                </div>
+              </div>
+
+              <div class="space-y-4">
+                <h3 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] pb-1 border-b border-slate-100">
+                  Emergency Contacts
+                </h3>
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-md space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-slate-500">Contact Person:</span>
+                    <span class="font-semibold text-slate-900">{{ currentEmp.emergencyContactName }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-500">Relationship:</span>
+                    <span class="font-semibold text-slate-900">{{ currentEmp.emergencyContactRelation }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-500">Phone:</span>
+                    <span class="font-semibold font-mono text-slate-900">{{ currentEmp.emergencyContactPhone }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Employment Tab -->
+          @if (activeTab === 'employment') {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-3">
+                <h3 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] pb-1 border-b border-slate-100">
+                  Position & Hierarchy
+                </h3>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <span class="text-slate-500">Company:</span>
+                    <div class="font-medium text-slate-800">{{ currentEmp.company }}</div>
+                  </div>
+                  <div>
+                    <span class="text-slate-500">Business Unit:</span>
+                    <div class="font-medium text-slate-800">{{ currentEmp.businessUnit }}</div>
+                  </div>
+                  <div>
+                    <span class="text-slate-500">Department:</span>
+                    <div class="font-medium text-slate-800">{{ currentEmp.department }}</div>
+                  </div>
+                  <div>
+                    <span class="text-slate-500">Designation:</span>
+                    <div class="font-medium text-slate-800">{{ currentEmp.designation }}</div>
+                  </div>
+                  <div>
+                    <span class="text-slate-500">Job Level / Band:</span>
+                    <div class="font-medium text-slate-800">{{ currentEmp.jobLevel }} · {{ currentEmp.band }}</div>
+                  </div>
+                  <div>
+                    <span class="text-slate-500">Cost Center:</span>
+                    <div class="font-mono text-slate-800">{{ currentEmp.costCenter }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h3 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] pb-1 border-b border-slate-100">
+                  Employment Lifecycle
+                </h3>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <span class="text-slate-500">Date of Joining:</span>
+                    <div class="font-semibold text-slate-800">{{ currentEmp.joiningDate }}</div>
+                  </div>
+                  <div>
+                    <span class="text-slate-500">Confirmation Date:</span>
+                    <div class="font-semibold text-slate-800">{{ currentEmp.confirmationDate || 'N/A' }}</div>
+                  </div>
+                  <div class="col-span-2 p-2.5 bg-blue-50/50 border border-blue-100 rounded-md">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="text-slate-600 font-medium">Reporting Manager (Workflow Approver):</span>
+                      @if (canEditManager && !isEditingManager) {
+                        <button
+                          type="button"
+                          (click)="handleStartEditManager()"
+                          class="text-[11px] font-semibold text-blue-700 hover:text-blue-900 underline"
+                        >
+                          Change Manager
+                        </button>
+                      }
+                    </div>
+                    @if (isEditingManager) {
+                      <div class="mt-2 space-y-2">
+                        <select
+                          [(ngModel)]="selectedManagerId"
+                          class="w-full px-2.5 py-1.5 border border-blue-300 rounded bg-white text-xs font-medium"
+                        >
+                          <option value="">-- Select Manager --</option>
+                          @for (m of managerList; track m.id) {
+                            <option [value]="m.id">
+                              {{ m.firstName }} {{ m.lastName }} ({{ m.employeeCode }}) — {{ m.designation }}
+                            </option>
+                          }
+                        </select>
+                        <div class="flex items-center gap-2">
+                          <button
+                            type="button"
+                            [disabled]="savingManager || !selectedManagerId"
+                            (click)="handleSaveManager()"
+                            class="px-2.5 py-1 bg-slate-900 text-white rounded text-[11px] font-semibold hover:bg-slate-800 disabled:opacity-50"
+                          >
+                            {{ savingManager ? 'Saving...' : 'Confirm Assignment' }}
+                          </button>
+                          <button
+                            type="button"
+                            (click)="selectedManagerId = currentEmp.reportingManagerId; isEditingManager = false"
+                            class="px-2 py-1 bg-white border border-slate-200 text-slate-700 rounded text-[11px] hover:bg-slate-100"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    } @else {
+                      <div class="font-bold text-slate-900 flex items-center gap-2 text-xs">
+                        <span>{{ currentEmp.reportingManagerName || 'None assigned' }}</span>
+                        <span class="text-[10px] text-slate-500 font-mono">({{ currentEmp.reportingManagerId || 'N/A' }})</span>
+                      </div>
+                    }
+                  </div>
+                  <div>
+                    <span class="text-slate-500">Branch Office:</span>
+                    <div class="font-medium text-slate-800">{{ currentEmp.branch }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Salary Tab -->
+          @if (activeTab === 'salary' && canViewSalary) {
+            <div class="space-y-6">
+              <div class="p-4 bg-slate-900 text-white rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <span class="text-xs text-slate-400">Annual Total Cost to Company (CTC)</span>
+                  <div class="text-2xl font-bold font-mono tabular-nums">
+                    ₹{{ currentEmp.salary.ctcAnnual.toLocaleString('en-IN') }}
+                  </div>
+                </div>
+                <div class="sm:text-right text-xs text-slate-400">
+                  <div>Effective Revision Date</div>
+                  <div class="text-white font-mono">{{ currentEmp.salary.effectiveDate }}</div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-slate-200 rounded-lg p-4">
+                  <h4 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] pb-2 border-b border-slate-100">
+                    Monthly Earnings Components
+                  </h4>
+                  <div class="divide-y divide-slate-100 mt-2">
+                    <div class="py-1.5 flex justify-between">
+                      <span class="text-slate-600">Basic Salary</span>
+                      <span class="font-mono font-semibold text-slate-900">₹{{ currentEmp.salary.basicMonthly.toLocaleString('en-IN') }}</span>
+                    </div>
+                    <div class="py-1.5 flex justify-between">
+                      <span class="text-slate-600">House Rent Allowance (HRA)</span>
+                      <span class="font-mono font-semibold text-slate-900">₹{{ currentEmp.salary.hraMonthly.toLocaleString('en-IN') }}</span>
+                    </div>
+                    <div class="py-1.5 flex justify-between">
+                      <span class="text-slate-600">Special Allowance</span>
+                      <span class="font-mono font-semibold text-slate-900">₹{{ currentEmp.salary.specialAllowance.toLocaleString('en-IN') }}</span>
+                    </div>
+                    <div class="py-2 flex justify-between font-bold bg-slate-50 px-2 rounded">
+                      <span>Total Gross Monthly</span>
+                      <span class="font-mono">
+                        ₹{{ (currentEmp.salary.basicMonthly + currentEmp.salary.hraMonthly + currentEmp.salary.specialAllowance).toLocaleString('en-IN') }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="border border-slate-200 rounded-lg p-4">
+                  <h4 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] pb-2 border-b border-slate-100">
+                    Statutory Deductions (Monthly)
+                  </h4>
+                  <div class="divide-y divide-slate-100 mt-2">
+                    <div class="py-1.5 flex justify-between">
+                      <span class="text-slate-600">Employee Provident Fund (PF)</span>
+                      <span class="font-mono text-slate-900">₹{{ currentEmp.salary.pfMonthly.toLocaleString('en-IN') }}</span>
+                    </div>
+                    <div class="py-1.5 flex justify-between">
+                      <span class="text-slate-600">Professional Tax (PT)</span>
+                      <span class="font-mono text-slate-900">₹{{ currentEmp.salary.professionalTax.toLocaleString('en-IN') }}</span>
+                    </div>
+                    <div class="py-2 flex justify-between font-bold bg-slate-50 px-2 rounded">
+                      <span>Total Deductions</span>
+                      <span class="font-mono">
+                        ₹{{ (currentEmp.salary.pfMonthly + currentEmp.salary.professionalTax).toLocaleString('en-IN') }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Banking Mandate & Statutory Identification -->
+              <div class="mt-4 border border-slate-200 rounded-lg p-4 bg-slate-50">
+                <h4 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] pb-2 border-b border-slate-200">
+                  Banking Mandate & Statutory Identification
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 text-xs">
+                  <div>
+                    <div class="text-slate-500">Bank Name</div>
+                    <div class="font-semibold text-slate-900">{{ currentEmp.salary.bankName || 'HDFC Bank Ltd.' }}</div>
+                  </div>
+                  <div>
+                    <div class="text-slate-500">Account Number</div>
+                    <div class="font-semibold font-mono text-slate-900">{{ currentEmp.salary.accountNumber || ('••••••••' + (currentEmp.phone.slice(-4) || '4481')) }}</div>
+                  </div>
+                  <div>
+                    <div class="text-slate-500">IFSC Code</div>
+                    <div class="font-semibold font-mono text-slate-900">{{ currentEmp.salary.ifscCode || 'HDFC0001042' }}</div>
+                  </div>
+                  <div>
+                    <div class="text-slate-500">Payment Mode</div>
+                    <div class="font-semibold text-slate-900">{{ currentEmp.salary.paymentMode || 'Bank Transfer' }}</div>
+                  </div>
+                  <div>
+                    <div class="text-slate-500">PAN Card Number</div>
+                    <div class="font-semibold font-mono text-slate-900">{{ currentEmp.salary.panNumber || 'BKRPY9021M' }}</div>
+                  </div>
+                  <div>
+                    <div class="text-slate-500">Aadhaar Number</div>
+                    <div class="font-semibold font-mono text-slate-900">{{ currentEmp.salary.aadhaarNumber || ('•••• •••• ' + (currentEmp.employeeCode.slice(-4) || '8920')) }}</div>
+                  </div>
+                  <div>
+                    <div class="text-slate-500">PF Universal Account (UAN)</div>
+                    <div class="font-semibold font-mono text-slate-900">{{ currentEmp.salary.uanNumber || '101294829104' }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Documents Tab -->
+          @if (activeTab === 'documents') {
+            <div class="space-y-5">
+              <!-- Sub-tab Switcher & Actions -->
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
+                <div class="flex flex-col sm:inline-flex sm:flex-row p-1 bg-slate-100 rounded-lg text-xs font-semibold gap-1 sm:gap-0 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    (click)="docSubTab = 'kyc'"
+                    [class.bg-white]="docSubTab === 'kyc'"
+                    [class.text-slate-900]="docSubTab === 'kyc'"
+                    [class.shadow-xs]="docSubTab === 'kyc'"
+                    [class.text-slate-600]="docSubTab !== 'kyc'"
+                    class="px-3 py-1.5 rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>KYC & Personal Uploads ({{ kycDocuments.length }})</span>
+                  </button>
+                  <button
+                    type="button"
+                    (click)="docSubTab = 'company'"
+                    [class.bg-white]="docSubTab === 'company'"
+                    [class.text-slate-900]="docSubTab === 'company'"
+                    [class.shadow-xs]="docSubTab === 'company'"
+                    [class.text-slate-600]="docSubTab !== 'company'"
+                    class="px-3 py-1.5 rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Company Issued Documents ({{ companyDocuments.length }})</span>
+                  </button>
+                </div>
+
+                @if (docSubTab === 'company' && canManageDocs) {
+                  <button
+                    type="button"
+                    (click)="openIssueDialog()"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs cursor-pointer"
+                  >
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="12" y1="5" x2="12" y2="19"/>
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    <span>Issue Document to Employee</span>
+                  </button>
+                }
+              </div>
+
+              <!-- ================= 1. EMPLOYEE KYC DOCUMENTS REVIEW ================= -->
+              @if (docSubTab === 'kyc') {
+                <div class="space-y-4">
+                  <!-- Quick Status Counters -->
+                  <div class="grid grid-cols-3 gap-2.5">
+                    <div class="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                      <div>
+                        <div class="text-[10px] font-bold text-emerald-800 uppercase">Verified</div>
+                        <div class="text-base font-bold text-emerald-700 font-mono">{{ countKyc('Verified') }}</div>
+                      </div>
+                      <span class="text-xs text-emerald-600">✓</span>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-between">
+                      <div>
+                        <div class="text-[10px] font-bold text-amber-800 uppercase">Pending Review</div>
+                        <div class="text-base font-bold text-amber-700 font-mono">{{ countKyc('Pending Verification') }}</div>
+                      </div>
+                      <span class="text-xs text-amber-600">⏱</span>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-between">
+                      <div>
+                        <div class="text-[10px] font-bold text-rose-800 uppercase">Rejected</div>
+                        <div class="text-base font-bold text-rose-700 font-mono">{{ countKyc('Rejected') }}</div>
+                      </div>
+                      <span class="text-xs text-rose-600">✗</span>
+                    </div>
+                  </div>
+
+                  <!-- KYC Filter -->
+                  <div class="flex items-center gap-1.5 text-xs">
+                    <span class="text-slate-400 font-medium mr-1">Filter:</span>
+                    @for (f of ['All', 'Verified', 'Pending Verification', 'Rejected']; track f) {
+                      <button
+                        type="button"
+                        (click)="kycFilter = f"
+                        [class.bg-slate-900]="kycFilter === f"
+                        [class.text-white]="kycFilter === f"
+                        [class.bg-slate-100]="kycFilter !== f"
+                        [class.text-slate-600]="kycFilter !== f"
+                        class="px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer"
+                      >
+                        {{ f }}
+                      </button>
+                    }
+                  </div>
+
+                  <!-- KYC Document Items -->
+                  <div class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden bg-white">
+                    @for (doc of filteredKycDocs; track doc.id) {
+                      <div class="p-3.5 hover:bg-slate-50/50 transition-colors">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <!-- Left Info -->
+                          <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                              [class.bg-emerald-100]="doc.status === 'Verified'"
+                              [class.text-emerald-700]="doc.status === 'Verified'"
+                              [class.bg-amber-100]="doc.status === 'Pending Verification'"
+                              [class.text-amber-700]="doc.status === 'Pending Verification'"
+                              [class.bg-rose-100]="doc.status === 'Rejected'"
+                              [class.text-rose-700]="doc.status === 'Rejected'"
+                            >
+                              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                              </svg>
+                            </div>
+
+                            <div class="space-y-1">
+                              <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-bold text-slate-900 text-xs">{{ doc.name }}</span>
+                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                                  {{ doc.category }}
+                                </span>
+                                @if (doc.documentNumber) {
+                                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                                    {{ doc.documentNumber }}
+                                  </span>
+                                }
+                              </div>
+                              <div class="text-[11px] text-slate-400">
+                                Uploaded on {{ doc.uploadDate }} · {{ doc.fileSize }}
+                                @if (doc.verifiedDate) {
+                                  · <span class="text-emerald-700 font-medium">Verified by {{ doc.verifiedBy }} on {{ doc.verifiedDate }}</span>
+                                }
+                              </div>
+                              @if (doc.remarks) {
+                                <div class="text-[11px] text-slate-600 mt-1 p-1.5 rounded bg-slate-50 border border-slate-100">
+                                  <span class="font-semibold text-slate-700">Remarks:</span> {{ doc.remarks }}
+                                </div>
+                              }
+                            </div>
+                          </div>
+
+                          <!-- Right Controls -->
+                          <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 w-full sm:w-auto">
+                            <!-- Status Badge -->
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                              [class.bg-emerald-100]="doc.status === 'Verified'"
+                              [class.text-emerald-800]="doc.status === 'Verified'"
+                              [class.bg-amber-100]="doc.status === 'Pending Verification'"
+                              [class.text-amber-800]="doc.status === 'Pending Verification'"
+                              [class.bg-rose-100]="doc.status === 'Rejected'"
+                              [class.text-rose-800]="doc.status === 'Rejected'"
+                            >
+                              {{ doc.status }}
+                            </span>
+
+                            <!-- Download -->
+                            <button
+                              type="button"
+                              (click)="downloadDoc(doc.id, doc.name)"
+                              class="p-1 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                              title="Download Document"
+                            >
+                              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" x2="12" y1="15" y2="3"/>
+                              </svg>
+                            </button>
+
+                            <!-- HR Verification Actions -->
+                            @if (canManageDocs) {
+                              @if (doc.status !== 'Verified') {
+                                <button
+                                  type="button"
+                                  (click)="openVerifyDialog(doc, 'Verified')"
+                                  class="px-2 py-1 text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded transition-colors shadow-xs cursor-pointer"
+                                >
+                                  Verify / Approve
+                                </button>
+                              }
+                              @if (doc.status !== 'Rejected') {
+                                <button
+                                  type="button"
+                                  (click)="openVerifyDialog(doc, 'Rejected')"
+                                  class="px-2 py-1 text-[11px] font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded transition-colors cursor-pointer"
+                                >
+                                  Reject
+                                </button>
+                              }
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    } @empty {
+                      <div class="p-6 text-center text-xs text-slate-400">
+                        No KYC documents matching current filter.
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- ================= 2. COMPANY ISSUED DOCUMENTS ================= -->
+              @if (docSubTab === 'company') {
+                <div class="space-y-4">
+                  <!-- Category Filter -->
+                  <div class="flex items-center gap-1.5 text-xs flex-wrap">
+                    <span class="text-slate-400 font-medium mr-1">Filter:</span>
+                    @for (cat of ['All', 'Form 16', 'Medical', 'Appraisal', 'Appointment']; track cat) {
+                      <button
+                        type="button"
+                        (click)="companyFilter = cat"
+                        [class.bg-slate-900]="companyFilter === cat"
+                        [class.text-white]="companyFilter === cat"
+                        [class.bg-slate-100]="companyFilter !== cat"
+                        [class.text-slate-600]="companyFilter !== cat"
+                        class="px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer"
+                      >
+                        {{ cat }}
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Company Documents Table -->
+                  <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                    <table class="w-full text-left text-xs">
+                      <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                        <tr>
+                          <th class="py-2.5 px-3">Document Title</th>
+                          <th class="py-2.5 px-3">Category</th>
+                          <th class="py-2.5 px-3">FY / Validity</th>
+                          <th class="py-2.5 px-3">Issued By</th>
+                          <th class="py-2.5 px-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-100">
+                        @for (doc of filteredCompanyDocs; track doc.id) {
+                          <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="py-3 px-3">
+                              <div class="font-bold text-slate-900">{{ doc.title }}</div>
+                              <div class="text-[11px] text-slate-400">Issued on {{ doc.issueDate }} · {{ doc.fileSize }}</div>
+                            </td>
+                            <td class="py-3 px-3">
+                              <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                                {{ doc.category }}
+                              </span>
+                            </td>
+                            <td class="py-3 px-3 font-mono text-[11px] text-slate-600">
+                              {{ doc.financialYear ? 'FY ' + doc.financialYear : doc.validUntil || 'Permanent' }}
+                            </td>
+                            <td class="py-3 px-3 text-slate-600 text-[11px]">
+                              {{ doc.issuedBy }}
+                            </td>
+                            <td class="py-3 px-3 text-right">
+                              <div class="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  (click)="downloadDoc(doc.id, doc.title + '.pdf')"
+                                  class="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                                  title="Download File"
+                                >
+                                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" x2="12" y1="15" y2="3"/>
+                                  </svg>
+                                </button>
+                                @if (canManageDocs) {
+                                  <button
+                                    type="button"
+                                    (click)="deleteCompanyDoc(doc.id)"
+                                    class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                                    title="Revoke / Delete Document"
+                                  >
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                      <polyline points="3 6 5 6 21 6"/>
+                                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                    </svg>
+                                  </button>
+                                }
+                              </div>
+                            </td>
+                          </tr>
+                        } @empty {
+                          <tr>
+                            <td colspan="5" class="py-6 text-center text-xs text-slate-400">
+                              No company documents issued for this category.
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              }
+
+              <!-- ================= VERIFICATION REMARKS MODAL ================= -->
+              @if (verifyingDoc) {
+                <div class="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+                  <div class="bg-white rounded-2xl shadow-xl max-w-md w-full my-auto max-h-[calc(100vh-2rem)] sm:max-h-[90vh] flex flex-col overflow-hidden p-5 border border-slate-200">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
+                      <h3 class="font-bold text-slate-900 text-sm">
+                        {{ verifyAction === 'Verified' ? 'Approve & Verify KYC Document' : 'Reject KYC Document' }}
+                      </h3>
+                      <button (click)="closeVerifyDialog()" class="text-slate-400 hover:text-slate-600">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="18" y1="6" x2="6" y2="18"/>
+                          <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div class="py-4 space-y-3 overflow-y-auto flex-1">
+                      <div class="p-3 rounded-lg bg-slate-50 border border-slate-100 text-xs">
+                        <div class="font-semibold text-slate-800">{{ verifyingDoc.name }}</div>
+                        <div class="text-slate-500 text-[11px] mt-0.5">
+                          {{ verifyingDoc.category }} · {{ verifyingDoc.documentNumber || 'No ID specified' }}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                          Reviewer Remarks / Reason *
+                        </label>
+                        <textarea
+                          rows="3"
+                          [(ngModel)]="verificationRemarks"
+                          class="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          [placeholder]="verifyAction === 'Verified' ? 'e.g. Document verified against official database.' : 'e.g. Scan is blurred / Name mismatch.'">
+                        </textarea>
+                      </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 flex justify-end gap-2 shrink-0">
+                      <button (click)="closeVerifyDialog()" class="px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 rounded-md">
+                        Cancel
+                      </button>
+                      <button
+                        (click)="submitVerification()"
+                        [disabled]="isSubmittingVerification"
+                        [class.bg-emerald-600]="verifyAction === 'Verified'"
+                        [class.hover:bg-emerald-700]="verifyAction === 'Verified'"
+                        [class.bg-rose-600]="verifyAction === 'Rejected'"
+                        [class.hover:bg-rose-700]="verifyAction === 'Rejected'"
+                        class="px-3.5 py-1.5 text-xs font-semibold text-white rounded-md transition-colors shadow-xs"
+                      >
+                        {{ isSubmittingVerification ? 'Processing...' : (verifyAction === 'Verified' ? 'Confirm Approval' : 'Confirm Rejection') }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- ================= ISSUE COMPANY DOCUMENT MODAL ================= -->
+              @if (isIssueModalOpen) {
+                <div class="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+                  <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full my-auto max-h-[calc(100vh-2rem)] sm:max-h-[90vh] flex flex-col overflow-hidden p-5 border border-slate-200">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
+
+                      <div>
+                        <h3 class="font-bold text-slate-900 text-sm">Issue Company Document to Employee</h3>
+                        <p class="text-[11px] text-slate-500">Document will be immediately available in {{ currentEmp.firstName }}'s self-service portal</p>
+                      </div>
+                      <button (click)="closeIssueDialog()" class="text-slate-400 hover:text-slate-600">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="18" y1="6" x2="6" y2="18"/>
+                          <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div class="py-4 space-y-3.5 max-h-[70vh] overflow-y-auto">
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Document Category *</label>
+                        <select
+                          [(ngModel)]="issueCategory"
+                          (ngModelChange)="onIssueCategoryChange($event)"
+                          class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-white"
+                        >
+                          @for (cat of companyCategories; track cat) {
+                            <option [value]="cat">{{ cat }}</option>
+                          }
+                        </select>
+                      </div>
+
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Document Title *</label>
+                        <input
+                          type="text"
+                          [(ngModel)]="issueTitle"
+                          class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg"
+                        />
+                      </div>
+
+                      <div class="grid grid-cols-2 gap-2.5">
+                        <div>
+                          <label class="block text-xs font-semibold text-slate-700 mb-1">Financial Year</label>
+                          <input
+                            type="text"
+                            [(ngModel)]="issueFinancialYear"
+                            placeholder="e.g. 2024-2025"
+                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg font-mono"
+                          />
+                        </div>
+                        <div>
+                          <label class="block text-xs font-semibold text-slate-700 mb-1">Valid Until</label>
+                          <input
+                            type="text"
+                            [(ngModel)]="issueValidUntil"
+                            placeholder="e.g. 31-Mar-2026 or Permanent"
+                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Issuing Department</label>
+                        <input
+                          type="text"
+                          [(ngModel)]="issueDepartment"
+                          placeholder="e.g. Finance & Payroll Department"
+                          class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg"
+                        />
+                      </div>
+
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Description / Summary</label>
+                        <textarea
+                          rows="2"
+                          [(ngModel)]="issueDescription"
+                          class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg"
+                          placeholder="Brief description of the document..."
+                        ></textarea>
+                      </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                      <button (click)="closeIssueDialog()" class="px-3.5 py-1.5 text-xs text-slate-700 hover:bg-slate-100 rounded-md">
+                        Cancel
+                      </button>
+                      <button
+                        (click)="submitIssueCompanyDoc()"
+                        [disabled]="isSubmittingIssue || !issueTitle"
+                        class="px-4 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-md shadow-xs"
+                      >
+                        {{ isSubmittingIssue ? 'Issuing...' : 'Issue Document' }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-end">
+          <button
+            (click)="close.emit()"
+            class="px-4 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-100"
+          >
+            Close Profile
+          </button>
+        </div>
+      </div>
+    </div>

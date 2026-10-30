@@ -1,0 +1,287 @@
+<div class="p-4 sm:p-6 space-y-5 sm:space-y-6 max-w-7xl mx-auto">
+  <!-- Welcome Banner -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+    <div>
+      <h1 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
+        Welcome back, {{ auth.currentUser()?.name }}
+      </h1>
+      <p class="text-xs text-slate-500 mt-0.5">
+        {{ auth.currentUser()?.designation }} · {{ auth.currentUser()?.department }} · Employee ID: {{
+        auth.currentUser()?.employeeId }}
+      </p>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+      <button (click)="navigate('attendance')"
+        class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">
+        Log Regularization
+      </button>
+      <button (click)="navigate('leave')"
+        class="px-3 py-1.5 text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded-md transition-colors shadow-xs">
+        Apply Leave
+      </button>
+    </div>
+  </div>
+
+  <!-- Role-Specific Cockpit Views -->
+  @if (isManager) {
+  <div class="p-4 bg-[#0b1736] text-white rounded-lg border border-[#162a5c] shadow-xs">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-sm font-semibold">Team Management Quick Action</h2>
+        <p class="text-xs text-slate-300 mt-0.5">
+          You have 2 pending approval actions requiring line manager sign-off.
+        </p>
+      </div>
+      <button (click)="navigate('approvals')"
+        class="px-3 py-1.5 text-xs font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded transition-colors shadow-xs">
+        Open Approvals Hub
+      </button>
+    </div>
+  </div>
+  }
+
+
+
+  <!-- Main Grid: My Leave Applications & Holiday Calendar -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left 2 Cols: Recent Applications -->
+    <div class="lg:col-span-2 bg-white border border-slate-200 rounded-lg overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <svg lucideFileText class="w-4 h-4 text-slate-500"></svg>
+          <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            My Recent Requests & Approvals
+          </h2>
+        </div>
+        <button (click)="navigate('leave')" class="text-xs text-slate-600 hover:text-slate-900 font-medium">
+          View All
+        </button>
+      </div>
+
+      <div class="divide-y divide-slate-100">
+        @if (recentRequests.length === 0) {
+        <div class="p-6 text-center text-xs text-slate-400">
+          No recent leave or attendance requests found
+        </div>
+        } @else {
+        @for (r of recentRequests; track r.id) {
+        <div class="p-4 hover:bg-slate-50 transition-colors">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-semibold text-slate-900">
+                {{ r.leaveType }} ({{ r.numberOfDays }} {{ r.numberOfDays === 1 ? 'day' : 'days' }})
+              </span>
+              <div class="text-[11px] text-slate-500 mt-0.5">
+                {{ r.startDate }} to {{ r.endDate }} · Applied on {{ formatDate(r.appliedDate) }}
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded"
+                [ngClass]="r.status === 'Approved' ? 'bg-emerald-50 text-emerald-700' : (r.status === 'Pending' ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700')">
+                {{ r.status }}
+              </span>
+              <div class="text-[10px] text-slate-400 mt-1">
+                Step: {{ r.currentStepIndex === 1 ? 'Manager Review' : 'HR Review' }}
+              </div>
+            </div>
+          </div>
+          <p class="mt-2 text-xs text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">
+            Reason: {{ r.reason }}
+          </p>
+        </div>
+        }
+        }
+      </div>
+    </div>
+
+    <!-- Right 1 Col: Upcoming Holidays & Policies -->
+    <div class="space-y-6">
+      <!-- Interactive Holiday Calendar Card -->
+      <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-2xs">
+        <!-- Calendar Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <svg lucideCalendarDays class="w-4 h-4 text-orange-600 shrink-0"></svg>
+            <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              Calendar
+            </h2>
+          </div>
+          <div class="flex items-center gap-1">
+
+            <button type="button" (click)="prevMonth()"
+              class="p-1 rounded text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="Previous month">
+              <svg lucideChevronLeft class="w-3.5 h-3.5"></svg>
+            </button>
+            <span class="text-xs font-semibold text-slate-800 font-mono min-w-[95px] text-center">
+              {{ currentMonthLabel }}
+            </span>
+            <button type="button" (click)="nextMonth()"
+              class="p-1 rounded text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="Next month">
+              <svg lucideChevronRight class="w-3.5 h-3.5"></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Weekdays Header (Sunday and Saturday marked as Weekend Off) -->
+        <div class="grid grid-cols-7 gap-1 mt-3 text-center text-[10px] font-bold">
+          <div class="text-rose-600">Su</div>
+          <div class="text-slate-400">Mo</div>
+          <div class="text-slate-400">Tu</div>
+          <div class="text-slate-400">We</div>
+          <div class="text-slate-400">Th</div>
+          <div class="text-slate-400">Fr</div>
+          <div class="text-rose-600">Sa</div>
+        </div>
+
+        <!-- Calendar Days Grid -->
+        <div class="grid grid-cols-7 gap-1 mt-1 text-center">
+          @for (cell of calendarDays; track cell.dateStr) {
+          <button type="button" (click)="selectDate(cell)"
+            class="group relative aspect-square w-full flex flex-col items-center justify-center rounded-md text-xs transition-all cursor-pointer"
+            [ngClass]="{
+                'bg-slate-900 text-white font-bold ring-2 ring-slate-900 shadow-xs z-10': selectedDateStr === cell.dateStr,
+                'text-slate-300 pointer-events-none': !cell.isCurrentMonth && selectedDateStr !== cell.dateStr,
+                'text-slate-700 hover:bg-slate-100': cell.isCurrentMonth && selectedDateStr !== cell.dateStr && !cell.holiday && !cell.isWeekend && !cell.myApprovedLeave,
+                'bg-emerald-50 text-emerald-900 font-bold border border-emerald-300 hover:bg-emerald-100': cell.myApprovedLeave && selectedDateStr !== cell.dateStr,
+                'bg-orange-50 text-orange-800 font-bold border border-orange-200 hover:bg-orange-100': cell.holiday && !cell.myApprovedLeave && selectedDateStr !== cell.dateStr,
+                'text-rose-500 hover:bg-rose-50/50 font-medium': cell.isWeekend && !cell.holiday && !cell.myApprovedLeave && cell.isCurrentMonth && selectedDateStr !== cell.dateStr,
+                'ring-2 ring-orange-500 ring-offset-1': cell.isToday && selectedDateStr !== cell.dateStr
+              }" [title]="getTooltip(cell)">
+            <span class="leading-none">{{ cell.day }}</span>
+
+            <!-- Indicator Marks -->
+            @if (cell.myApprovedLeave) {
+            <span class="w-1.5 h-1.5 rounded-full mt-0.5 shrink-0"
+              [ngClass]="selectedDateStr === cell.dateStr ? 'bg-emerald-300' : 'bg-emerald-500'">
+            </span>
+            } @else if (cell.holiday) {
+            <span class="w-1.5 h-1.5 rounded-full mt-0.5 shrink-0"
+              [ngClass]="selectedDateStr === cell.dateStr ? 'bg-orange-400' : 'bg-orange-500'">
+            </span>
+            } @else if (cell.isWeekend && cell.isCurrentMonth) {
+            <span class="w-1.5 h-1.5 rounded-full mt-0.5 shrink-0"
+              [ngClass]="selectedDateStr === cell.dateStr ? 'bg-red-400' : 'bg-red-500'">
+            </span>
+            }
+
+            <!-- Tooltip on Hover -->
+            <div
+              class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col items-center z-50 w-max max-w-[210px] bg-slate-900/95 backdrop-blur-xs text-white px-2.5 py-1.5 rounded-md shadow-xl border border-slate-700">
+              @if (cell.myApprovedLeave) {
+              <span class="font-bold text-center text-emerald-300 text-[11px] leading-tight">My Approved Leave</span>
+              <span class="text-[9px] text-emerald-200/90 mt-0.5 font-medium">{{ cell.myApprovedLeave.leaveType }} · Approved</span>
+              } @else if (cell.holiday) {
+              <span class="font-bold text-center text-orange-300 text-[11px] leading-tight">{{ cell.holiday.name }}</span>
+              <span class="text-[9px] text-orange-200/90 mt-0.5 font-medium">{{ cell.holiday.type }}</span>
+              } @else if (cell.isWeekend) {
+              <span class="font-bold text-center text-rose-300 text-[11px] leading-tight">Weekly Off ({{ getDayName(cell) }})</span>
+              <span class="text-[9px] text-rose-200/90 mt-0.5 font-medium">Weekend Holiday</span>
+              } @else {
+              <span class="font-semibold text-slate-200 text-[10px] leading-tight">Working Day</span>
+              <span class="text-[9px] text-slate-400 mt-0.5">{{ cell.dateStr }}</span>
+              }
+              <!-- Arrow -->
+              <div class="w-1.5 h-1.5 bg-slate-900 rotate-45 -mb-2 border-r border-b border-slate-700"></div>
+            </div>
+          </button>
+          }
+        </div>
+
+        <!-- Calendar Legend -->
+        <div class="grid grid-cols-2 gap-y-1.5 gap-x-2 text-[10px] text-slate-500 mt-3 pt-2.5 border-t border-slate-100">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>My Approved Leave</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+            <span>Holiday</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+            <span>Weekend (Sat / Sun)</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-slate-900"></span>
+            <span>Selected / Today</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Who is on Leave Today Card -->
+      <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-2xs">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <svg lucideUsers class="w-4 h-4 text-emerald-600 shrink-0"></svg>
+            <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              On Leave Today
+            </h2>
+          </div>
+          <span class="px-2 py-0.5 text-[10px] font-bold rounded-full"
+            [ngClass]="todayOnLeave.length > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700'">
+            {{ todayOnLeave.length }} {{ todayOnLeave.length === 1 ? 'Person' : 'People' }}
+          </span>
+        </div>
+
+        @if (todayOnLeave.length > 0) {
+        <div class="divide-y divide-slate-100 mt-1">
+          @for (emp of todayOnLeave; track emp.id) {
+          <div class="py-2.5 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-[11px] shrink-0">
+                {{ emp.employeeName.slice(0, 2).toUpperCase() }}
+              </div>
+              <div class="min-w-0">
+                <div class="text-xs font-semibold text-slate-900 truncate">
+                  {{ emp.employeeName }}
+                </div>
+                <div class="text-[10px] text-slate-500 truncate">
+                  {{ emp.department }}
+                </div>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="inline-block px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-700 rounded border border-emerald-200">
+                {{ emp.leaveType }}
+              </span>
+              <div class="text-[9px] text-slate-400 mt-0.5">
+                {{ emp.numberOfDays }} {{ emp.numberOfDays === 1 ? 'day' : 'days' }}
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+        } @else {
+        <div class="py-4 text-center">
+          <div class="inline-flex p-1.5 rounded-full bg-emerald-50 text-emerald-600 mb-1">
+            <svg lucideUserCheck class="w-4 h-4"></svg>
+          </div>
+          <p class="text-xs font-semibold text-slate-800">Everyone is Available Today</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">No team members are on leave today.</p>
+        </div>
+        }
+      </div>
+
+      <!-- Quick Shortcuts -->
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider pb-3 border-b border-slate-100">
+          Quick HR Links
+        </h2>
+        <div class="space-y-2 mt-3">
+          <button (click)="navigate('payroll')"
+            class="w-full flex items-center justify-between p-2 text-xs text-slate-700 bg-slate-50 hover:bg-slate-100 rounded transition-colors text-left">
+            <span>Download Latest Form 16 / Tax Slip</span>
+            <svg lucideChevronRight class="w-3.5 h-3.5 text-slate-400"></svg>
+          </button>
+          <button (click)="navigate('travel-expenses')"
+            class="w-full flex items-center justify-between p-2 text-xs text-slate-700 bg-slate-50 hover:bg-slate-100 rounded transition-colors text-left">
+            <span>Submit Reimbursement Expense</span>
+            <svg lucideChevronRight class="w-3.5 h-3.5 text-slate-400"></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

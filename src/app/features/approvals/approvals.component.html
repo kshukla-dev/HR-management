@@ -1,0 +1,572 @@
+<div class="p-6 space-y-6 max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-xl font-bold tracking-tight text-slate-900">
+          Manager & Approvals Command Hub
+        </h1>
+        <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-100 text-amber-900 font-mono tabular-nums border border-amber-200 shadow-2xs">
+          {{ totalPending() }} Action Items
+        </span>
+      </div>
+      <p class="text-xs text-slate-500 mt-1">
+        @if (currentUser()?.role === 'Manager') {
+          <span>Queue for your assigned team members (Reporting Manager: <strong>{{ currentUser()?.name }}</strong>)</span>
+        } @else {
+          <span>Unified inbox for processing team leave, biometric attendance corrections, reimbursement claims, and clearances.</span>
+        }
+      </p>
+    </div>
+
+    <!-- Right Controls: Scope & Month Selector -->
+    <div class="flex flex-wrap items-center gap-2.5">
+      <!-- Month Filter Selector -->
+      <div class="flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs text-xs">
+        <svg lucideCalendar class="w-4 h-4 text-orange-500 shrink-0"></svg>
+        <span class="text-slate-500 font-medium">Month:</span>
+        <select
+          [ngModel]="selectedMonth()"
+          (ngModelChange)="selectedMonth.set($event)"
+          class="bg-transparent font-bold text-slate-800 outline-none cursor-pointer pr-1"
+        >
+          @for (m of availableMonths; track m.value) {
+            <option [value]="m.value">{{ m.label }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Scope Switcher (for Admins / HR) -->
+      @if (currentUser()?.role === 'Super Admin' || currentUser()?.role === 'HR Admin') {
+        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs border border-slate-200 shadow-2xs">
+          <span class="text-slate-500 text-[11px] px-2 font-medium">Scope:</span>
+          <button
+            type="button"
+            (click)="setScope('my_reportees')"
+            class="px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer"
+            [ngClass]="managerScope() === 'my_reportees' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+          >
+            My Reportees
+          </button>
+          <button
+            type="button"
+            (click)="setScope('all')"
+            class="px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer"
+            [ngClass]="managerScope() === 'all' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+          >
+            All Organization
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Segmented Category Tabs -->
+  <div class="flex items-center gap-2 p-1 bg-slate-100 rounded-xl w-fit border border-slate-200/80 shadow-2xs overflow-x-auto no-scrollbar">
+    <button
+      type="button"
+      (click)="activeCategory.set('regularizations')"
+      class="flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap"
+      [ngClass]="activeCategory() === 'regularizations' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+    >
+      <span>Attendance Regularization</span>
+      <span class="font-mono tabular-nums text-[10px] px-1.5 py-0.2 rounded-full"
+        [ngClass]="activeCategory() === 'regularizations' ? 'bg-orange-100 text-orange-800' : 'bg-slate-200 text-slate-700'">
+        {{ filteredRegs().length }}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      (click)="activeCategory.set('leaves')"
+      class="flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap"
+      [ngClass]="activeCategory() === 'leaves' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+    >
+      <span>Leave Applications</span>
+      <span class="font-mono tabular-nums text-[10px] px-1.5 py-0.2 rounded-full"
+        [ngClass]="activeCategory() === 'leaves' ? 'bg-orange-100 text-orange-800' : 'bg-slate-200 text-slate-700'">
+        {{ filteredLeaves().length }}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      (click)="activeCategory.set('expenses')"
+      class="flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap"
+      [ngClass]="activeCategory() === 'expenses' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+    >
+      <span>Expense & Travel Claims</span>
+      <span class="font-mono tabular-nums text-[10px] px-1.5 py-0.2 rounded-full"
+        [ngClass]="activeCategory() === 'expenses' ? 'bg-orange-100 text-orange-800' : 'bg-slate-200 text-slate-700'">
+        {{ filteredExpenses().length }}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      (click)="activeCategory.set('separations')"
+      class="flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap"
+      [ngClass]="activeCategory() === 'separations' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+    >
+      <span>Exit Clearances</span>
+      <span class="font-mono tabular-nums text-[10px] px-1.5 py-0.2 rounded-full"
+        [ngClass]="activeCategory() === 'separations' ? 'bg-orange-100 text-orange-800' : 'bg-slate-200 text-slate-700'">
+        {{ filteredSeparations().length }}
+      </span>
+    </button>
+  </div>
+
+  <!-- TABLE CONTAINER -->
+  <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+    <!-- Active Category Header Bar -->
+    <div class="p-4 border-b border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider">
+          @if (activeCategory() === 'regularizations') {
+            Attendance Regularization Requests (Month: {{ selectedMonth() === 'All' ? 'All Months' : selectedMonth() }})
+          } @else if (activeCategory() === 'leaves') {
+            Pending Leave Applications (Month: {{ selectedMonth() === 'All' ? 'All Months' : selectedMonth() }})
+          } @else if (activeCategory() === 'expenses') {
+            Pending Reimbursement Claims (Month: {{ selectedMonth() === 'All' ? 'All Months' : selectedMonth() }})
+          } @else {
+            Pending Exit Clearances (Month: {{ selectedMonth() === 'All' ? 'All Months' : selectedMonth() }})
+          }
+        </h2>
+      </div>
+
+      <div class="text-xs text-slate-500 font-medium">
+        @if (selectedMonth() !== 'All') {
+          <button
+            type="button"
+            (click)="selectedMonth.set('All')"
+            class="text-orange-600 hover:text-orange-700 hover:underline font-semibold cursor-pointer mr-2"
+          >
+            Show All Months
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- 1. ATTENDANCE REGULARIZATION TABLE -->
+    @if (activeCategory() === 'regularizations') {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <tr>
+              <th class="py-3.5 px-4 font-bold">Applicant</th>
+              <th class="py-3.5 px-4 font-bold">Date</th>
+              <th class="py-3.5 px-4 font-bold">Logged Punches</th>
+              <th class="py-3.5 px-4 font-bold">Requested Correction</th>
+              <th class="py-3.5 px-4 font-bold">Reason / Explanation</th>
+              <th class="py-3.5 px-4 font-bold text-right">Decision Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @if (loading()) {
+              <tr>
+                <td colspan="6" class="py-12 text-center text-slate-400">Loading regularizations...</td>
+              </tr>
+            } @else if (filteredRegs().length === 0) {
+              <tr>
+                <td colspan="6" class="py-12 text-center text-slate-400">
+                  <div class="space-y-1">
+                    <p class="font-medium text-slate-600">No pending attendance regularizations found for this period.</p>
+                    <p class="text-[11px] text-slate-400">Try changing the Month filter or selecting "All Months".</p>
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (reg of filteredRegs(); track reg.id) {
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                  <!-- Applicant -->
+                  <td class="py-3.5 px-4">
+                    <div class="font-bold text-slate-900 text-xs">{{ reg.employeeName }}</div>
+                    <div class="text-[11px] text-slate-500 font-mono mt-0.5">{{ reg.employeeId }}</div>
+                  </td>
+
+                  <!-- Date -->
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <div class="font-bold text-slate-800 font-mono">{{ reg.date }}</div>
+                    <span class="inline-block mt-1 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.2 rounded">
+                      Late Arrival
+                    </span>
+                  </td>
+
+                  <!-- Logged Punches -->
+                  <td class="py-3.5 px-4 whitespace-nowrap font-mono text-xs text-slate-600">
+                    <div>In: <strong class="text-slate-800">{{ reg.inTime || 'N/A' }}</strong></div>
+                    <div class="mt-0.5">Out: <strong class="text-slate-800">{{ reg.outTime || 'N/A' }}</strong></div>
+                  </td>
+
+                  <!-- Requested Correction -->
+                  <td class="py-3.5 px-4 whitespace-nowrap font-mono text-xs text-emerald-700">
+                    <div>In: <strong class="text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">{{ reg.regularization?.requestedInTime }}</strong></div>
+                    <div class="mt-1">Out: <strong class="text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">{{ reg.regularization?.requestedOutTime }}</strong></div>
+                  </td>
+
+                  <!-- Reason / Remarks -->
+                  <td class="py-3.5 px-4 max-w-sm">
+                    <div class="p-2.5 bg-amber-50/70 rounded-xl border border-amber-200/90 text-xs text-slate-800 leading-relaxed shadow-2xs">
+                      <span class="font-semibold text-amber-900">Reason:</span> {{ reg.regularization?.reason }}
+                    </div>
+                  </td>
+
+                  <!-- Actions -->
+                  <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                    <div class="flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        (click)="setActionItem({
+                          id: reg.regularization!.id,
+                          type: 'reg',
+                          action: 'Rejected',
+                          title: 'Reject Attendance Regularization for ' + reg.employeeName
+                        })"
+                        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <svg lucideX class="w-3.5 h-3.5"></svg>
+                        <span>Reject</span>
+                      </button>
+                      <button
+                        type="button"
+                        (click)="setActionItem({
+                          id: reg.regularization!.id,
+                          type: 'reg',
+                          action: 'Approved',
+                          title: 'Approve Attendance Regularization for ' + reg.employeeName
+                        })"
+                        class="inline-flex items-center gap-1 px-3.5 py-1.5 text-xs font-semibold text-white bg-slate-900 hover:bg-emerald-600 rounded-lg transition-all cursor-pointer shadow-xs"
+                      >
+                        <svg lucideCheck class="w-3.5 h-3.5"></svg>
+                        <span>Approve Regularization</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- 2. LEAVE APPLICATIONS TABLE -->
+    @if (activeCategory() === 'leaves') {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <tr>
+              <th class="py-3.5 px-4 font-bold">Applicant</th>
+              <th class="py-3.5 px-4 font-bold">Leave Type</th>
+              <th class="py-3.5 px-4 font-bold">Duration & Days</th>
+              <th class="py-3.5 px-4 font-bold">Applied Date</th>
+              <th class="py-3.5 px-4 font-bold">Reason</th>
+              <th class="py-3.5 px-4 font-bold text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @if (loading()) {
+              <tr>
+                <td colspan="6" class="py-12 text-center text-slate-400">Loading leave requests...</td>
+              </tr>
+            } @else if (filteredLeaves().length === 0) {
+              <tr>
+                <td colspan="6" class="py-12 text-center text-slate-400">
+                  <div class="space-y-1">
+                    <p class="font-medium text-slate-600">No pending leave requests found for this period.</p>
+                    <p class="text-[11px] text-slate-400">Try changing the Month filter or selecting "All Months".</p>
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (leave of filteredLeaves(); track leave.id) {
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                  <td class="py-3.5 px-4">
+                    <div class="font-bold text-slate-900">{{ leave.employeeName }}</div>
+                    <div class="text-[11px] text-slate-500 font-mono mt-0.5">{{ leave.employeeCode }} · {{ leave.department }}</div>
+                    @if (leave.reportingManagerId === currentUser()?.employeeId || leave.reportingManagerName === currentUser()?.name) {
+                      <span class="text-[9px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded-full inline-block mt-1">
+                        Your Direct Reportee
+                      </span>
+                    }
+                  </td>
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <span class="font-semibold text-slate-800 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-xs">
+                      {{ leave.leaveType }}
+                    </span>
+                  </td>
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <div class="font-bold text-slate-900 font-mono">{{ leave.startDate }} to {{ leave.endDate }}</div>
+                    <div class="text-[11px] text-slate-500 font-medium mt-0.5">({{ leave.numberOfDays }} {{ leave.numberOfDays === 1 ? 'day' : 'days' }})</div>
+                  </td>
+                  <td class="py-3.5 px-4 whitespace-nowrap font-mono text-slate-700">
+                    {{ formatDate(leave.appliedDate) }}
+                  </td>
+                  <td class="py-3.5 px-4 max-w-sm">
+                    <div class="p-2 bg-slate-50 rounded-lg border border-slate-200/60 text-xs text-slate-700 leading-relaxed">
+                      {{ leave.reason }}
+                    </div>
+                  </td>
+                  <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                    <div class="flex items-center justify-end gap-1.5">
+                      <button
+                        type="button"
+                        (click)="setActionItem({
+                          id: leave.id,
+                          type: 'leave',
+                          action: 'Sent Back',
+                          title: 'Send Back Leave Request for ' + leave.employeeName
+                        })"
+                        class="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                      >
+                        <svg lucideCornerUpLeft class="w-3.5 h-3.5 inline mr-1"></svg> Send Back
+                      </button>
+                      <button
+                        type="button"
+                        (click)="setActionItem({
+                          id: leave.id,
+                          type: 'leave',
+                          action: 'Rejected',
+                          title: 'Reject Leave Request for ' + leave.employeeName
+                        })"
+                        class="px-2.5 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 transition-colors cursor-pointer"
+                      >
+                        <svg lucideX class="w-3.5 h-3.5 inline mr-1"></svg> Reject
+                      </button>
+                      <button
+                        type="button"
+                        (click)="setActionItem({
+                          id: leave.id,
+                          type: 'leave',
+                          action: 'Approved',
+                          title: 'Approve Leave Request for ' + leave.employeeName
+                        })"
+                        class="px-3 py-1.5 text-xs font-semibold text-white bg-slate-900 hover:bg-emerald-600 rounded-lg transition-colors cursor-pointer shadow-xs"
+                      >
+                        <svg lucideCheck class="w-3.5 h-3.5 inline mr-1"></svg> Approve
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- 3. EXPENSE & TRAVEL CLAIMS TABLE -->
+    @if (activeCategory() === 'expenses') {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <tr>
+              <th class="py-3.5 px-4 font-bold">Claim ID & Applicant</th>
+              <th class="py-3.5 px-4 font-bold">Category & Title</th>
+              <th class="py-3.5 px-4 font-bold">Date</th>
+              <th class="py-3.5 px-4 font-bold font-mono">Amount</th>
+              <th class="py-3.5 px-4 font-bold">Bills & Attachments</th>
+              <th class="py-3.5 px-4 font-bold text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @if (loading()) {
+              <tr>
+                <td colspan="6" class="py-12 text-center text-slate-400">Loading claims...</td>
+              </tr>
+            } @else if (filteredExpenses().length === 0) {
+              <tr>
+                <td colspan="6" class="py-12 text-center text-slate-400">
+                  <div class="space-y-1">
+                    <p class="font-medium text-slate-600">No pending expense claims found for this period.</p>
+                    <p class="text-[11px] text-slate-400">Try changing the Month filter or selecting "All Months".</p>
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (exp of filteredExpenses(); track exp.id) {
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <div class="font-bold text-slate-900">{{ exp.employeeName }}</div>
+                    <div class="text-[11px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded w-fit mt-0.5">{{ exp.id }}</div>
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <div class="font-bold text-slate-900">{{ exp.title }}</div>
+                    <div class="text-[11px] text-slate-500 mt-0.5">{{ exp.category }} · {{ exp.department }}</div>
+                  </td>
+                  <td class="py-3.5 px-4 whitespace-nowrap font-mono text-slate-700">
+                    {{ exp.date }}
+                  </td>
+                  <td class="py-3.5 px-4 whitespace-nowrap font-mono font-bold text-sm text-slate-900">
+                    ₹{{ exp.amount.toLocaleString('en-IN') }}
+                  </td>
+                  <td class="py-3.5 px-4">
+                    @if (exp.attachments && exp.attachments.length > 0) {
+                      <div class="flex flex-wrap gap-1 max-w-[200px]">
+                        @for (att of exp.attachments; track att.name) {
+                          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] bg-blue-50 text-blue-700 border border-blue-200 font-mono">
+                            📄 {{ att.name }} ({{ att.size }})
+                          </span>
+                        }
+                      </div>
+                    } @else if (exp.receiptAttachment) {
+                      <span class="text-blue-600 text-xs font-mono">📄 {{ exp.receiptAttachment }}</span>
+                    } @else {
+                      <span class="text-slate-400 text-xs">—</span>
+                    }
+                  </td>
+                  <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                    <div class="flex items-center justify-end gap-1.5">
+                      <button
+                        type="button"
+                        (click)="setActionItem({
+                          id: exp.id,
+                          type: 'expense',
+                          action: 'Rejected',
+                          title: 'Reject Expense Claim ' + exp.id
+                        })"
+                        class="px-2.5 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 transition-colors cursor-pointer"
+                      >
+                        <svg lucideX class="w-3.5 h-3.5 inline mr-1"></svg> Reject
+                      </button>
+                      <button
+                        type="button"
+                        (click)="setActionItem({
+                          id: exp.id,
+                          type: 'expense',
+                          action: 'Approved',
+                          title: 'Approve Expense Claim ' + exp.id
+                        })"
+                        class="px-3.5 py-1.5 text-xs font-semibold text-white bg-slate-900 hover:bg-emerald-600 rounded-lg transition-colors cursor-pointer shadow-xs"
+                      >
+                        <svg lucideCheck class="w-3.5 h-3.5 inline mr-1"></svg> Authorize Claim
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- 4. EXIT CLEARANCES TABLE -->
+    @if (activeCategory() === 'separations') {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <tr>
+              <th class="py-3.5 px-4 font-bold">Employee</th>
+              <th class="py-3.5 px-4 font-bold">Designation & Department</th>
+              <th class="py-3.5 px-4 font-bold">Official LWD</th>
+              <th class="py-3.5 px-4 font-bold">Reason</th>
+              <th class="py-3.5 px-4 font-bold text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @if (loading()) {
+              <tr>
+                <td colspan="5" class="py-12 text-center text-slate-400">Loading exit clearances...</td>
+              </tr>
+            } @else if (filteredSeparations().length === 0) {
+              <tr>
+                <td colspan="5" class="py-12 text-center text-slate-400">
+                  <div class="space-y-1">
+                    <p class="font-medium text-slate-600">No active exit clearances requiring attention.</p>
+                    <p class="text-[11px] text-slate-400">Try changing the Month filter or selecting "All Months".</p>
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (sep of filteredSeparations(); track sep.id) {
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <div class="font-bold text-slate-900">{{ sep.employeeName }}</div>
+                  </td>
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <div class="font-semibold text-slate-800">{{ sep.designation }}</div>
+                    <div class="text-[11px] text-slate-500">{{ sep.department }}</div>
+                  </td>
+                  <td class="py-3.5 px-4 whitespace-nowrap font-mono font-bold text-slate-900">
+                    {{ sep.officialLwd }}
+                  </td>
+                  <td class="py-3.5 px-4 max-w-sm">
+                    <div class="text-xs text-slate-700 leading-relaxed">{{ sep.reason }}</div>
+                  </td>
+                  <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                    <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                      {{ sep.status }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- Action Dialog / Comment Prompt Modal -->
+  @if (actionItem()) {
+    <div 
+      class="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150"
+      (click)="actionItem.set(null)"
+    >
+      <div 
+        class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md my-auto max-h-[calc(100vh-2rem)] sm:max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 bg-slate-50 shrink-0">
+          <h3 class="text-sm font-bold text-slate-900">{{ actionItem()?.title }}</h3>
+          <button (click)="actionItem.set(null)" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200/60 transition cursor-pointer">
+            <svg lucideX class="w-4 h-4"></svg>
+          </button>
+        </div>
+
+        <div class="flex flex-col flex-1 overflow-hidden text-xs">
+          <div class="p-5 space-y-4 overflow-y-auto flex-1">
+            <p class="text-slate-600">
+              Please enter your decision remarks. These comments will be recorded in the audit trail and sent to the applicant.
+            </p>
+
+            <div>
+              <label class="block text-slate-700 font-semibold mb-1.5">
+                Manager Remarks / Comments {{ actionItem()?.action === 'Rejected' ? '*' : '(Optional)' }}
+              </label>
+              <textarea
+                rows="3"
+                [(ngModel)]="actionComment"
+                placeholder="e.g., Approved with coverage plan arranged; or Please discuss handover timeline..."
+                class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-xs"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2.5 p-4 border-t border-slate-200 bg-slate-50/60 shrink-0">
+            <button
+              type="button"
+              (click)="actionItem.set(null)"
+              class="px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              (click)="handleActionConfirm()"
+              [disabled]="submittingAction()"
+              class="px-4 py-2 text-xs font-semibold rounded-xl text-white transition-all cursor-pointer shadow-xs"
+              [ngClass]="{
+                'bg-slate-900 hover:bg-emerald-600': actionItem()?.action === 'Approved',
+                'bg-rose-600 hover:bg-rose-700': actionItem()?.action === 'Rejected',
+                'bg-slate-700 hover:bg-slate-800': actionItem()?.action === 'Sent Back'
+              }"
+            >
+              {{ submittingAction() ? 'Processing...' : 'Confirm ' + actionItem()?.action }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

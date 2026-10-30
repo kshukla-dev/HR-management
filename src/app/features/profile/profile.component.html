@@ -1,0 +1,976 @@
+<div class="p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+  @if (employee(); as emp) {
+  <!-- Profile Header Card -->
+  <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 shadow-xs">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5">
+        <div class="flex items-center gap-3.5 sm:gap-4 w-full sm:w-auto">
+          <img [src]="emp.avatarUrl" [alt]="emp.firstName"
+            class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-slate-100 shadow-sm shrink-0" />
+          <div class="sm:hidden flex-1">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <h1 class="text-lg font-bold text-slate-900">
+                {{ emp.firstName }} {{ emp.lastName }}
+              </h1>
+            </div>
+            <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+              <span class="text-[10px] font-mono bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">
+                {{ emp.employeeCode }}
+              </span>
+              <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">
+                {{ emp.employmentStatus }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full sm:w-auto">
+          <div class="hidden sm:flex items-center gap-2 flex-wrap">
+            <h1 class="text-xl font-bold text-slate-900">
+              {{ emp.firstName }} {{ emp.lastName }}
+            </h1>
+            <span class="text-xs font-mono bg-slate-100 text-slate-700 px-2 py-0.5 rounded">
+              {{ emp.employeeCode }}
+            </span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">
+              {{ emp.employmentStatus }}
+            </span>
+          </div>
+          <p class="text-xs text-slate-600 mt-1 font-medium">
+            {{ emp.designation }} · {{ emp.department }} · {{ emp.location }}
+          </p>
+          <div class="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 text-xs text-slate-500 mt-2">
+            <span class="flex items-center gap-1.5 break-all sm:break-normal"><svg lucideMail
+                class="w-3.5 h-3.5 shrink-0"></svg> {{ emp.email }}</span>
+            <span class="flex items-center gap-1.5"><svg lucidePhone class="w-3.5 h-3.5 shrink-0"></svg> {{ emp.phone
+              }}</span>
+            <span class="flex items-center gap-1.5"><svg lucideCalendar class="w-3.5 h-3.5 shrink-0"></svg> Joined {{
+              emp.joiningDate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-2.5 text-left md:text-right pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 w-full md:w-auto">
+        <div>
+          <span class="text-[10px] md:text-[11px] text-slate-400 uppercase tracking-wider block">Line Manager</span>
+          <span class="text-xs font-bold text-slate-900">{{ emp.reportingManagerName }}</span>
+          <span class="text-[10px] md:text-[11px] text-slate-500 block">Cost Center: {{ emp.costCenter }}</span>
+        </div>
+        <button type="button" (click)="openEditDetailsModal('personal')"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer shrink-0">
+          <svg lucidePencil class="w-3.5 h-3.5"></svg>
+          <span>Edit Details</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div
+      class="flex border-b border-slate-200 mt-6 sm:mt-8 overflow-x-auto no-scrollbar scroll-smooth -mx-4 sm:mx-0 px-4 sm:px-0">
+      @for (tab of tabs; track tab.id) {
+      <button (click)="activeTab.set(tab.id)"
+        class="py-2.5 sm:py-3 px-3 sm:px-4 text-xs font-semibold border-b-2 whitespace-nowrap shrink-0 transition-colors cursor-pointer"
+        [ngClass]="activeTab() === tab.id
+                  ? 'border-slate-900 text-slate-900'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'">
+        {{ tab.label }}
+      </button>
+      }
+    </div>
+
+    <!-- Tab Body -->
+    <div class="pt-6 text-xs">
+      @if (activeTab() === 'personal') {
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-4">
+          <h3 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] pb-1 border-b border-slate-100">
+            Primary Demographic Records
+          </h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <span class="text-slate-500 block">Date of Birth</span>
+              <span class="font-semibold text-slate-800 font-mono">{{ emp.dateOfBirth }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Gender</span>
+              <span class="font-semibold text-slate-800">{{ emp.gender }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Blood Group</span>
+              <span class="font-semibold text-slate-800">{{ emp.bloodGroup }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Marital Status</span>
+              <span class="font-semibold text-slate-800">{{ emp.maritalStatus }}</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-4 pb-1 border-b border-slate-100">
+            <h3 class="font-bold text-slate-900 uppercase tracking-wider text-[11px]">
+              Residential Addresses
+            </h3>
+            <button type="button" (click)="openEditDetailsModal('address')"
+              class="text-[11px] font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer">
+              <svg lucidePencil class="w-3 h-3"></svg>
+              <span>Edit</span>
+            </button>
+          </div>
+          <div>
+            <span class="text-slate-500 block">Present Address</span>
+            <span class="font-medium text-slate-800 mt-0.5 block">{{ emp.currentAddress }}</span>
+          </div>
+          <div>
+            <span class="text-slate-500 block">Permanent Domicile</span>
+            <span class="font-medium text-slate-800 mt-0.5 block">{{ emp.permanentAddress }}</span>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="flex items-center justify-between pb-1 border-b border-slate-100">
+            <h3 class="font-bold text-slate-900 uppercase tracking-wider text-[11px]">
+              Emergency Nominee Details
+            </h3>
+            <button type="button" (click)="openEditDetailsModal('emergency')"
+              class="text-[11px] font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer">
+              <svg lucidePencil class="w-3 h-3"></svg>
+              <span>Edit</span>
+            </button>
+          </div>
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
+            <div class="flex justify-between">
+              <span class="text-slate-500">Nominee Name:</span>
+              <span class="font-bold text-slate-900">{{ emp.emergencyContactName }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Relationship:</span>
+              <span class="font-semibold text-slate-800">{{ emp.emergencyContactRelation }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Contact Number:</span>
+              <span class="font-mono font-semibold text-slate-900">{{ emp.emergencyContactPhone }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+
+      @if (activeTab() === 'employment') {
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-4">
+          <h3 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] pb-1 border-b border-slate-100">
+            Enterprise Position Alignment
+          </h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <span class="text-slate-500 block">Company Legal Entity</span>
+              <span class="font-semibold text-slate-800">{{ emp.company }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Business Unit</span>
+              <span class="font-semibold text-slate-800">{{ emp.businessUnit }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Department</span>
+              <span class="font-semibold text-slate-800">{{ emp.department }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Sub-Department</span>
+              <span class="font-semibold text-slate-800">{{ emp.subDepartment }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Designation Title</span>
+              <span class="font-semibold text-slate-800">{{ emp.designation }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Level & Band</span>
+              <span class="font-semibold text-slate-800">{{ emp.jobLevel }} · {{ emp.band }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <h3 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] pb-1 border-b border-slate-100">
+            Tenure & Confirmation
+          </h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <span class="text-slate-500 block">Date of Joining</span>
+              <span class="font-mono font-semibold text-slate-900">{{ emp.joiningDate }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Confirmation Status</span>
+              <span class="font-semibold text-emerald-700">Confirmed (On-Roll)</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Employment Category</span>
+              <span class="font-semibold text-slate-800">{{ emp.employmentType }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Assigned Work Branch</span>
+              <span class="font-semibold text-slate-800">{{ emp.branch }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+
+      @if (activeTab() === 'salary') {
+      <div class="space-y-6">
+        <div
+          class="p-4 bg-slate-900 text-white rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-xs text-slate-400">Annual Cost to Company (CTC)</span>
+            <div class="text-2xl font-bold font-mono">
+              ₹{{ emp.salary.ctcAnnual.toLocaleString('en-IN') }}
+            </div>
+          </div>
+          <div class="sm:text-right text-xs text-slate-400">
+            <div>Effective Cycle</div>
+            <div class="text-white font-mono">{{ emp.salary.effectiveDate }}</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="border border-slate-200 rounded-lg p-4">
+            <h4 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] pb-2 border-b border-slate-100">
+              Monthly Salary Breakup
+            </h4>
+            <div class="divide-y divide-slate-100 mt-2">
+              <div class="py-2 flex justify-between">
+                <span class="text-slate-600">Basic Salary</span>
+                <span class="font-mono font-semibold">₹{{ emp.salary.basicMonthly.toLocaleString('en-IN') }}</span>
+              </div>
+              <div class="py-2 flex justify-between">
+                <span class="text-slate-600">House Rent Allowance (HRA)</span>
+                <span class="font-mono font-semibold">₹{{ emp.salary.hraMonthly.toLocaleString('en-IN') }}</span>
+              </div>
+              <div class="py-2 flex justify-between">
+                <span class="text-slate-600">Special Allowance</span>
+                <span class="font-mono font-semibold">₹{{ emp.salary.specialAllowance.toLocaleString('en-IN') }}</span>
+              </div>
+              <div class="py-2 flex justify-between font-bold bg-slate-50 px-2 rounded">
+                <span>Gross Monthly Emoluments</span>
+                <span class="font-mono">
+                  ₹{{ (emp.salary.basicMonthly + emp.salary.hraMonthly +
+                  emp.salary.specialAllowance).toLocaleString('en-IN') }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="border border-slate-200 rounded-lg p-4">
+            <h4 class="font-bold text-slate-900 uppercase tracking-wider text-[11px] pb-2 border-b border-slate-100">
+              Statutory Deductions
+            </h4>
+            <div class="divide-y divide-slate-100 mt-2">
+              <div class="py-2 flex justify-between">
+                <span class="text-slate-600">Employee Provident Fund (PF)</span>
+                <span class="font-mono">₹{{ emp.salary.pfMonthly.toLocaleString('en-IN') }}</span>
+              </div>
+              <div class="py-2 flex justify-between">
+                <span class="text-slate-600">Professional Tax (PT)</span>
+                <span class="font-mono">₹{{ emp.salary.professionalTax.toLocaleString('en-IN') }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+
+      @if (activeTab() === 'documents') {
+      <div class="space-y-6">
+        <!-- Dual-Section Header / Switcher -->
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-slate-200">
+          <div>
+            <h4 class="font-bold text-slate-900 text-sm">
+              Employee Document Management & Records Center
+            </h4>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Manage your mandatory identity & KYC records or download company-issued statutory certificates, Form 16,
+              and medical policies.
+            </p>
+          </div>
+
+          <!-- Segmented View Toggle -->
+          <div
+            class="flex flex-col sm:inline-flex sm:flex-row p-1 bg-slate-100 rounded-lg text-xs font-semibold shrink-0 gap-1 sm:gap-0">
+            <button type="button" (click)="docSection.set('kyc')" [class.bg-white]="docSection() === 'kyc'"
+              [class.text-slate-900]="docSection() === 'kyc'" [class.shadow-xs]="docSection() === 'kyc'"
+              [class.text-slate-600]="docSection() !== 'kyc'"
+              class="px-3.5 py-1.5 rounded-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4" />
+                <path d="M14 2v6h6" />
+                <path d="m3 15 2 2 4-4" />
+              </svg>
+              <span>My Uploaded KYC ({{ kycDocuments().length }})</span>
+            </button>
+            <button type="button" (click)="docSection.set('company')" [class.bg-white]="docSection() === 'company'"
+              [class.text-slate-900]="docSection() === 'company'" [class.shadow-xs]="docSection() === 'company'"
+              [class.text-slate-600]="docSection() !== 'company'"
+              class="px-3.5 py-1.5 rounded-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" x2="12" y1="15" y2="3" />
+              </svg>
+              <span>Company Downloads ({{ companyDocuments().length }})</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ================= SECTION 1: MY UPLOADED KYC DOCUMENTS ================= -->
+        @if (docSection() === 'kyc') {
+        <div class="space-y-4">
+          <!-- Documents Table Card -->
+          <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-2xs">
+            <!-- Table Action Header -->
+            <div
+              class="p-3.5 sm:p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
+              <div>
+                <h5 class="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  Uploaded Identity & KYC Documents
+                </h5>
+                <p class="text-[11px] text-slate-500 mt-0.5">
+                  Total {{ kycDocuments().length }} uploaded records
+                </p>
+              </div>
+              <button type="button" (click)="openUploadModal()"
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-lg transition-all shadow-xs shrink-0 cursor-pointer">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" x2="12" y1="3" y2="15" />
+                </svg>
+                <span>Upload New Document</span>
+              </button>
+            </div>
+
+            <!-- Responsive Table View -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr
+                    class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                    <th class="py-3 px-4">Document Name</th>
+                    <th class="py-3 px-4">Category</th>
+                    <th class="py-3 px-4">Document No.</th>
+                    <th class="py-3 px-4">Uploaded Date</th>
+                    <th class="py-3 px-4 text-center">Status</th>
+                    <th class="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                  @for (doc of kycDocuments(); track doc.id) {
+                  <tr class="hover:bg-slate-50/70 transition-colors">
+                    <!-- Document Name -->
+                    <td class="py-3 px-4">
+                      <div class="flex items-center gap-2.5">
+                        <div
+                          class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                            <polyline points="14 2 14 8 20 8" />
+                          </svg>
+                        </div>
+                        <div class="min-w-0">
+                          <div class="font-bold text-slate-900 truncate">{{ doc.name }}</div>
+                          @if (doc.remarks) {
+                          <div class="text-[10px] text-slate-500 mt-0.5 truncate max-w-xs">Note: {{ doc.remarks }}</div>
+                          }
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Category -->
+                    <td class="py-3 px-4 whitespace-nowrap">
+                      <span
+                        class="inline-block px-2 py-0.5 rounded bg-slate-100 text-[11px] font-semibold text-slate-700">
+                        {{ doc.category }}
+                      </span>
+                    </td>
+
+                    <!-- Document No. -->
+                    <td class="py-3 px-4 font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                      {{ doc.documentNumber || '—' }}
+                    </td>
+
+                    <!-- Uploaded Date -->
+                    <td class="py-3 px-4 font-mono text-[11px] text-slate-500 whitespace-nowrap">
+                      {{ doc.uploadDate }}
+                    </td>
+
+                    <!-- Status Column -->
+                    <td class="py-3 px-4 text-center whitespace-nowrap">
+                      @if (doc.status === 'Verified') {
+                      <span
+                        class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <svg class="w-3 h-3 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="3">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        <span>Verified</span>
+                      </span>
+                      } @else if (doc.status === 'Pending Verification') {
+                      <span
+                        class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                        <svg class="w-3 h-3 text-amber-600 animate-spin" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" stroke-width="2">
+                          <circle cx="12" cy="12" r="10" stroke-opacity="0.3" />
+                          <path d="M12 2a10 10 0 0 1 10 10" />
+                        </svg>
+                        <span>Pending Review</span>
+                      </span>
+                      } @else {
+                      <span
+                        class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                        <svg class="w-3 h-3 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="3">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                        <span>Rejected</span>
+                      </span>
+                      }
+                    </td>
+
+                    <!-- Actions -->
+                    <td class="py-3 px-4 text-right whitespace-nowrap">
+                      <div class="inline-flex items-center gap-1.5">
+                        @if (doc.status === 'Rejected') {
+                        <button type="button" (click)="openUploadModal(doc.category)"
+                          class="px-2 py-0.5 text-[10px] font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded transition-colors cursor-pointer">
+                          Re-Upload
+                        </button>
+                        }
+                        <button type="button" (click)="downloadDocument(doc.id, doc.name)"
+                          class="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                          title="Download Document">
+                          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" x2="12" y1="15" y2="3" />
+                          </svg>
+                        </button>
+                        @if (doc.status !== 'Verified') {
+                        <button type="button" (click)="deleteKycDocument(doc.id)"
+                          class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                          title="Delete Document">
+                          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                        </button>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                  } @empty {
+                  <tr>
+                    <td colspan="7" class="py-8 text-center text-slate-400">
+                      No documents uploaded yet. Click "Upload New Document" to add your mandatory identity documents.
+                    </td>
+                  </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        }
+
+        <!-- ================= SECTION 2: COMPANY ISSUED DOCUMENTS (DOWNLOADS) ================= -->
+        @if (docSection() === 'company') {
+        <div class="space-y-4">
+          <!-- Documents Table Card -->
+          <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-2xs">
+            <!-- Table Header Bar -->
+            <div
+              class="p-3.5 sm:p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
+              <div>
+                <h5 class="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  Official Company Documents & Certificates
+                </h5>
+                <p class="text-[11px] text-slate-500 mt-0.5">
+                  Total {{ companyDocuments().length }} official certificates and corporate letters available for
+                  download
+                </p>
+              </div>
+            </div>
+
+            <!-- Responsive Table View -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr
+                    class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                    <th class="py-3 px-4">Document Title</th>
+                    <th class="py-3 px-4">Category</th>
+                    <th class="py-3 px-4">Financial Year / Validity</th>
+                    <th class="py-3 px-4">Issued By & Date</th>
+                    <th class="py-3 px-4 text-center">Status</th>
+                    <th class="py-3 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                  @for (doc of companyDocuments(); track doc.id) {
+                  <tr class="hover:bg-slate-50/70 transition-colors">
+                    <!-- Title & Description -->
+                    <td class="py-3 px-4">
+                      <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                            <polyline points="14 2 14 8 20 8" />
+                          </svg>
+                        </div>
+                        <div class="min-w-0">
+                          <div class="font-bold text-slate-900 truncate">{{ doc.title }}</div>
+                          @if (doc.description) {
+                          <div class="text-[10px] text-slate-500 mt-0.5 truncate max-w-sm">{{ doc.description }}</div>
+                          }
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Category -->
+                    <td class="py-3 px-4 whitespace-nowrap">
+                      <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold"
+                        [class.bg-blue-50]="doc.category.includes('Form 16')"
+                        [class.text-blue-700]="doc.category.includes('Form 16')"
+                        [class.bg-emerald-50]="doc.category.includes('Medical')"
+                        [class.text-emerald-700]="doc.category.includes('Medical')"
+                        [class.bg-purple-50]="doc.category.includes('Appraisal')"
+                        [class.text-purple-700]="doc.category.includes('Appraisal')"
+                        [class.bg-amber-50]="doc.category.includes('Appointment')"
+                        [class.text-amber-700]="doc.category.includes('Appointment')"
+                        [class.bg-slate-100]="!doc.category.includes('Form 16') && !doc.category.includes('Medical') && !doc.category.includes('Appraisal') && !doc.category.includes('Appointment')"
+                        [class.text-slate-700]="!doc.category.includes('Form 16') && !doc.category.includes('Medical') && !doc.category.includes('Appraisal') && !doc.category.includes('Appointment')">
+                        {{ doc.category }}
+                      </span>
+                    </td>
+
+                    <!-- Financial Year / Validity -->
+                    <td class="py-3 px-4 text-[11px] text-slate-600 whitespace-nowrap">
+                      @if (doc.financialYear) {
+                      <span class="font-mono font-medium bg-slate-100 px-1.5 py-0.5 rounded mr-1">
+                        FY {{ doc.financialYear }}
+                      </span>
+                      }
+                      @if (doc.validUntil && doc.validUntil !== 'Permanent') {
+                      <span class="text-slate-500">Till {{ doc.validUntil }}</span>
+                      } @else if (!doc.financialYear) {
+                      <span class="text-slate-400">Permanent</span>
+                      }
+                    </td>
+
+                    <!-- Issued By & Date -->
+                    <td class="py-3 px-4 text-[11px] text-slate-600 whitespace-nowrap">
+                      <div>{{ doc.issuedBy }}</div>
+                      <div class="text-[10px] text-slate-400 mt-0.5 font-mono">{{ doc.issueDate }}</div>
+                    </td>
+                    <!-- Status Column -->
+                    <td class="py-3 px-4 text-center whitespace-nowrap">
+                      <span
+                        class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <svg class="w-3 h-3 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="3">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        <span>Available</span>
+                      </span>
+                    </td>
+
+                    <!-- Action -->
+                    <td class="py-3 px-4 text-right whitespace-nowrap">
+                      <button type="button" (click)="downloadDocument(doc.id, doc.title + '.pdf')"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs cursor-pointer">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2.5">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" x2="12" y1="15" y2="3" />
+                        </svg>
+                        <span>Download PDF</span>
+                      </button>
+                    </td>
+                  </tr>
+                  } @empty {
+                  <tr>
+                    <td colspan="7" class="py-8 text-center text-slate-400">
+                      No company documents available at this time.
+                    </td>
+                  </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        }
+
+
+
+        <!-- ================= UPLOAD KYC DOCUMENT MODAL ================= -->
+        @if (isUploadModalOpen()) {
+        <div
+          class="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+          <div
+            class="bg-white rounded-2xl shadow-2xl max-w-lg w-full my-auto max-h-[calc(100vh-2rem)] sm:max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-150">
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" x2="12" y1="3" y2="15" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="font-bold text-slate-900 text-sm">Upload KYC / Identification Document</h3>
+                  <p class="text-[11px] text-slate-500">Provide document metadata and upload a clear PDF or scanned copy
+                  </p>
+                </div>
+              </div>
+              <button type="button" (click)="closeUploadModal()"
+                class="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+              @if (uploadSuccessMsg()) {
+              <div
+                class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                <svg class="w-4 h-4 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="3">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span>{{ uploadSuccessMsg() }}</span>
+              </div>
+              }
+
+              <!-- Category Selector -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Document Category *</label>
+                <select [ngModel]="uploadCategory()" (ngModelChange)="onCategoryChange($event)"
+                  class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                  @for (cat of kycCategories; track cat) {
+                  <option [value]="cat">{{ cat }}</option>
+                  }
+                </select>
+              </div>
+
+              <!-- Document Number -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Document Identifier / Number
+                  <span class="text-slate-400 font-normal">(e.g. Aadhaar 4 digits XXXX-1234, PAN No, Account No.)</span>
+                </label>
+                <input type="text" [ngModel]="uploadDocNumber()" (ngModelChange)="uploadDocNumber.set($event)"
+                  placeholder="e.g. XXXX-XXXX-4921 or BKRPY9021M"
+                  class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
+              </div>
+
+              <!-- Custom Document Name -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Document Label / File Title
+                  <span class="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                <input type="text" [ngModel]="uploadCustomName()" (ngModelChange)="uploadCustomName.set($event)"
+                  [placeholder]="uploadFileName() || 'e.g. Aadhaar_Front_Back.pdf'"
+                  class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
+
+              <!-- File Picker Dropzone -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Select File (PDF, JPG, PNG up to 10MB)
+                  *</label>
+                <label
+                  class="border-2 border-dashed border-slate-200 hover:border-indigo-400 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer bg-slate-50/50 hover:bg-indigo-50/20 transition-all">
+                  <input type="file" accept=".pdf,.png,.jpg,.jpeg" (change)="onFileSelected($event)" class="hidden" />
+                  <svg class="w-8 h-8 text-indigo-500 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" x2="12" y1="3" y2="15" />
+                  </svg>
+                  <span class="text-xs font-semibold text-slate-800">
+                    {{ uploadFileName() || 'Click to browse and choose file' }}
+                  </span>
+                  <span class="text-[11px] text-slate-400 mt-0.5">
+                    Estimated file size: {{ uploadFileSize() }}
+                  </span>
+                </label>
+              </div>
+
+              <!-- Remarks note -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Notes / Remarks for HR
+                  <span class="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                <textarea rows="2" [ngModel]="uploadRemarks()" (ngModelChange)="uploadRemarks.set($event)"
+                  placeholder="Add any relevant information about this document..."
+                  class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+              </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <button type="button" (click)="closeUploadModal()"
+                class="px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer">
+                Cancel
+              </button>
+              <button type="button" (click)="submitKycUpload()" [disabled]="uploading()"
+                class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer">
+                @if (uploading()) {
+                <svg class="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2">
+                  <circle cx="12" cy="12" r="10" stroke-opacity="0.3" />
+                  <path d="M12 2a10 10 0 0 1 10 10" />
+                </svg>
+                <span>Uploading...</span>
+                } @else {
+                <span>Submit for Verification</span>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </div>
+
+  <!-- ================= EDIT PROFILE DETAILS MODAL (SELF-SERVICE) ================= -->
+  @if (isEditDetailsOpen()) {
+  <div
+    class="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-slate-900/60 backdrop-blur-xs p-2 sm:p-6 overflow-y-auto animate-in fade-in duration-150">
+    <div
+      class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-2xl my-auto max-h-[calc(100vh-1rem)] sm:max-h-[90vh] flex flex-col overflow-hidden">
+      <!-- Modal Header -->
+      <div
+        class="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-slate-50 shrink-0">
+        <div class="flex items-center gap-2.5 sm:gap-3">
+          <div class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0">
+            <svg lucidePencil class="w-4 h-4"></svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Edit My Profile Details</h3>
+            <p class="text-[10px] sm:text-[11px] text-slate-500">Update photo, phone, address & emergency nominee</p>
+          </div>
+        </div>
+        <button type="button" (click)="closeEditDetailsModal()"
+          class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg transition-colors cursor-pointer">
+          <svg lucideX class="w-4 h-4"></svg>
+        </button>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div
+        class="flex border-b border-slate-200 bg-white px-3 sm:px-6 gap-1 text-xs overflow-x-auto no-scrollbar scroll-smooth shrink-0">
+        <button type="button" (click)="editTab.set('personal')" [class.border-slate-900]="editTab() === 'personal'"
+          [class.text-slate-900]="editTab() === 'personal'" [class.font-semibold]="editTab() === 'personal'"
+          [class.border-transparent]="editTab() !== 'personal'" [class.text-slate-500]="editTab() !== 'personal'"
+          class="py-2.5 px-3 border-b-2 whitespace-nowrap transition-colors cursor-pointer">
+          Photo & Contact
+        </button>
+        <button type="button" (click)="editTab.set('address')" [class.border-slate-900]="editTab() === 'address'"
+          [class.text-slate-900]="editTab() === 'address'" [class.font-semibold]="editTab() === 'address'"
+          [class.border-transparent]="editTab() !== 'address'" [class.text-slate-500]="editTab() !== 'address'"
+          class="py-2.5 px-3 border-b-2 whitespace-nowrap transition-colors cursor-pointer">
+          Addresses
+        </button>
+        <button type="button" (click)="editTab.set('emergency')" [class.border-slate-900]="editTab() === 'emergency'"
+          [class.text-slate-900]="editTab() === 'emergency'" [class.font-semibold]="editTab() === 'emergency'"
+          [class.border-transparent]="editTab() !== 'emergency'" [class.text-slate-500]="editTab() !== 'emergency'"
+          class="py-2.5 px-3 border-b-2 whitespace-nowrap transition-colors cursor-pointer">
+          Emergency Nominee
+        </button>
+      </div>
+
+      <!-- Feedback Messages -->
+      @if (saveDetailsError()) {
+      <div
+        class="mx-4 sm:mx-6 mt-3 p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-xs font-medium">
+        {{ saveDetailsError() }}
+      </div>
+      }
+      @if (saveDetailsSuccess()) {
+      <div
+        class="mx-4 sm:mx-6 mt-3 p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs font-medium flex items-center gap-1.5">
+        <svg lucideCheck class="w-4 h-4 text-emerald-600"></svg>
+        <span>{{ saveDetailsSuccess() }}</span>
+      </div>
+      }
+
+      <!-- Modal Content Body -->
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs flex-1">
+        <!-- Tab 1: Photo & Contact -->
+        @if (editTab() === 'personal') {
+        <div class="space-y-4">
+          <!-- Photo Picker -->
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+            <span class="text-xs font-bold text-slate-800 block">Profile Picture</span>
+            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4">
+              <div class="relative shrink-0">
+                <img [src]="editAvatarUrl()" alt="Avatar Preview"
+                  class="w-16 h-16 rounded-full object-cover border-2 border-slate-300 shadow-sm" />
+                <label for="selfAvatarUpload"
+                  class="absolute bottom-0 right-0 p-1 bg-slate-900 text-white rounded-full cursor-pointer hover:bg-slate-800"
+                  title="Change photo">
+                  <svg lucideCamera class="w-3 h-3"></svg>
+                </label>
+                <input id="selfAvatarUpload" type="file" accept="image/*" (change)="onSelfPhotoChange($event)"
+                  class="hidden" />
+              </div>
+              <div class="flex-1 w-full space-y-2">
+                <div class="flex flex-col sm:flex-row gap-2">
+                  <label for="selfAvatarUpload"
+                    class="px-2.5 py-1.5 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg text-xs cursor-pointer hover:bg-slate-100 flex items-center justify-center gap-1 shadow-2xs shrink-0">
+                    <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" x2="12" y1="3" y2="15" />
+                    </svg>
+                    <span>Browse File...</span>
+                  </label>
+                  <input type="url" [ngModel]="editAvatarUrl()" (ngModelChange)="editAvatarUrl.set($event)"
+                    placeholder="Or enter image URL"
+                    class="flex-1 px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none" />
+                </div>
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1">
+                  @for (p of presetAvatars; track p.url) {
+                  <button type="button" (click)="selectPresetPhoto(p.url)"
+                    class="w-7 h-7 rounded-full overflow-hidden border-2 shrink-0 cursor-pointer"
+                    [class.border-slate-900]="editAvatarUrl() === p.url"
+                    [class.border-transparent]="editAvatarUrl() !== p.url">
+                    <img [src]="p.url" [alt]="p.label" class="w-full h-full object-cover" />
+                  </button>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact & Demographics -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-slate-700 font-medium mb-1">Contact Phone</label>
+              <input type="text" [ngModel]="editPhone()" (ngModelChange)="editPhone.set($event)"
+                placeholder="+91 98765 43210"
+                class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-1 focus:ring-slate-900" />
+            </div>
+            <div>
+              <label class="block text-slate-700 font-medium mb-1">Blood Group</label>
+              <select [ngModel]="editBloodGroup()" (ngModelChange)="editBloodGroup.set($event)"
+                class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white outline-none focus:ring-1 focus:ring-slate-900">
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-700 font-medium mb-1">Marital Status</label>
+              <select [ngModel]="editMaritalStatus()" (ngModelChange)="editMaritalStatus.set($event)"
+                class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white outline-none focus:ring-1 focus:ring-slate-900">
+                <option value="Single">Single</option>
+                <option value="Married">Married</option>
+                <option value="Divorced">Divorced</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        }
+
+        <!-- Tab 2: Addresses -->
+        @if (editTab() === 'address') {
+        <div class="space-y-3">
+          <div>
+            <label class="block text-slate-700 font-medium mb-1">Present / Current Address</label>
+            <textarea rows="3" [ngModel]="editCurrentAddress()" (ngModelChange)="editCurrentAddress.set($event)"
+              placeholder="Current residence address, street, city, state, pin"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-1 focus:ring-slate-900"></textarea>
+          </div>
+          <div>
+            <label class="block text-slate-700 font-medium mb-1">Permanent Domicile Address</label>
+            <textarea rows="3" [ngModel]="editPermanentAddress()" (ngModelChange)="editPermanentAddress.set($event)"
+              placeholder="Permanent hometown address, street, city, state, pin"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-1 focus:ring-slate-900"></textarea>
+          </div>
+        </div>
+        }
+
+        <!-- Tab 3: Emergency Nominee -->
+        @if (editTab() === 'emergency') {
+        <div class="space-y-3">
+          <div class="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-[11px]">
+            This emergency nominee information is maintained by HR in case of any medical or workplace emergency.
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-slate-700 font-medium mb-1">Nominee Name</label>
+              <input type="text" [ngModel]="editEmergencyName()" (ngModelChange)="editEmergencyName.set($event)"
+                placeholder="Family contact name"
+                class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-1 focus:ring-slate-900" />
+            </div>
+            <div>
+              <label class="block text-slate-700 font-medium mb-1">Relationship</label>
+              <input type="text" [ngModel]="editEmergencyRelation()" (ngModelChange)="editEmergencyRelation.set($event)"
+                placeholder="Spouse / Parent / Sibling"
+                class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-1 focus:ring-slate-900" />
+            </div>
+            <div>
+              <label class="block text-slate-700 font-medium mb-1">Emergency Phone</label>
+              <input type="text" [ngModel]="editEmergencyPhone()" (ngModelChange)="editEmergencyPhone.set($event)"
+                placeholder="+91 99999 00000"
+                class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-1 focus:ring-slate-900" />
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Modal Footer -->
+      <div
+        class="flex items-center justify-end gap-2.5 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200 bg-slate-50 shrink-0">
+        <button type="button" (click)="closeEditDetailsModal()"
+          class="px-4 py-2 text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 font-medium text-xs cursor-pointer">
+          Cancel
+        </button>
+        <button type="button" [disabled]="savingDetails()" (click)="saveEmployeeDetails()"
+          class="px-5 py-2 bg-slate-900 text-white rounded-lg font-semibold hover:bg-slate-800 disabled:opacity-50 flex items-center gap-1.5 text-xs shadow-xs cursor-pointer">
+          @if (savingDetails()) {
+          <span
+            class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          <span>Saving...</span>
+          } @else {
+          <svg lucideCheck class="w-3.5 h-3.5"></svg>
+          <span>Save Changes</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+  } @else {
+  <div class="p-8 text-center text-xs text-slate-400">
+    Loading employee profile records...
+  </div>
+  }
+</div>

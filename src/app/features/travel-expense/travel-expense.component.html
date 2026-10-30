@@ -1,0 +1,350 @@
+<div class="p-6 space-y-6 max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-4">
+    <div>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900">
+        Travel Requisitions & Expense Reimbursements
+      </h1>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Business travel allowances, offsite bookings, professional development vouchers, multi-bill receipts, and
+        finance settlement.
+      </p>
+    </div>
+    <button (click)="openApplyModal()"
+      class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-slate-900 rounded-md hover:bg-slate-800 transition-colors cursor-pointer shadow-xs">
+      <svg lucidePlus class="w-3.5 h-3.5"></svg>
+      File Reimbursement Claim
+    </button>
+  </div>
+
+    <!-- Table of Claims -->
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+      <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+        <div class="flex items-center gap-2">
+          <svg lucideReceipt class="w-4 h-4 text-slate-500"></svg>
+          <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            Claim Ledger & Authorizations
+          </h2>
+        </div>
+        <span class="text-xs text-slate-500 font-medium">Total: {{ items().length }} Records</span>
+      </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead
+                  class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                  <tr>
+                    <th class="py-3 px-4">Claim ID & Title</th>
+                    <th class="py-3 px-4">Category</th>
+                    <th class="py-3 px-4">Claim Date</th>
+                    <th class="py-3 px-4">Expense Bills</th>
+                    <th class="py-3 px-4 font-mono">Amount</th>
+                    <th class="py-3 px-4 text-center">Status</th>
+                    <th class="py-3 px-4">Approver</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                  @if (loading()) {
+                  <tr>
+                    <td colspan="7" class="py-8 text-center text-xs text-slate-400">Loading claims ledger...</td>
+                  </tr>
+                  } @else if (items().length === 0) {
+                  <tr>
+                    <td colspan="7" class="py-8 text-center text-xs text-slate-400">No reimbursement claims filed yet.
+                    </td>
+                  </tr>
+                  } @else {
+                  @for (item of items(); track item.id) {
+                  <tr class="hover:bg-slate-50/70 transition-colors">
+                    <!-- Claim ID & Title -->
+                    <td class="py-3 px-4">
+                      <div class="flex items-start gap-2.5">
+                        <div
+                          class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                            <polyline points="14 2 14 8 20 8" />
+                          </svg>
+                        </div>
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-1.5 flex-wrap">
+                            <span
+                              class="font-mono text-[11px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-semibold">
+                              {{ item.id }}
+                            </span>
+                            <span class="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-slate-100 text-slate-700">
+                              {{ item.type }}
+                            </span>
+                          </div>
+                          <div class="font-bold text-slate-900 mt-0.5 truncate max-w-xs" [title]="item.title">
+                            {{ item.title }}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Category & Description -->
+                    <td class="py-3 px-4">
+                      <div class="font-medium text-slate-900">{{ item.category }}</div>
+                      <div class="text-[11px] text-slate-500 truncate max-w-[200px]" [title]="item.description">
+                        {{ item.description }}
+                      </div>
+                    </td>
+
+                    <!-- Claim Date -->
+                    <td class="py-3 px-4 whitespace-nowrap">
+                      <div class="font-semibold text-slate-800 font-mono">{{ item.date }}</div>
+                    </td>
+
+                        <!-- Expense Bills / Attachments -->
+                        <td class="py-3 px-4">
+                          @if (item.attachments && item.attachments.length > 0) {
+                          <div class="flex flex-wrap gap-1.5 max-w-[220px]">
+                            @for (att of item.attachments; track att.name) {
+                            <button type="button" (click)="openPreview(att)"
+                              class="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-[11px] text-slate-700 font-medium transition cursor-pointer group"
+                              [title]="att.name">
+                              <svg lucideFileText class="w-3 h-3 text-orange-500 shrink-0"></svg>
+                              <span class="truncate max-w-[100px]">{{ att.name }}</span>
+                              <span class="text-[9px] text-slate-400 font-mono shrink-0">({{ att.size }})</span>
+                              <svg lucideEye class="w-3 h-3 text-slate-400 group-hover:text-slate-800 shrink-0"></svg>
+                            </button>
+                            }
+                          </div>
+                          } @else if (item.receiptAttachment) {
+                          <div class="inline-flex items-center gap-1 text-[11px] text-slate-600">
+                            <svg lucidePaperclip class="w-3 h-3 text-slate-400 shrink-0"></svg>
+                            <span class="truncate max-w-[140px]">{{ item.receiptAttachment }}</span>
+                          </div>
+                          } @else {
+                          <span class="text-slate-400 text-[11px]">—</span>
+                          }
+                        </td>
+
+                        <!-- Amount -->
+                        <td class="py-3 px-4 whitespace-nowrap">
+                          <div class="text-sm font-bold font-mono text-slate-900">
+                            ₹{{ item.amount.toLocaleString('en-IN') }}
+                          </div>
+                    </td>
+
+            <!-- Status -->
+            <td class="py-3 px-4 text-center whitespace-nowrap">
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded border inline-block" [ngClass]="{
+                      'bg-emerald-50 text-emerald-700 border-emerald-200': item.status === 'Paid',
+                      'bg-blue-50 text-blue-700 border-blue-200': item.status === 'Manager Approved',
+                      'bg-purple-50 text-purple-700 border-purple-200': item.status === 'Finance Approved',
+                      'bg-amber-50 text-amber-700 border-amber-200': item.status === 'Pending',
+                      'bg-rose-50 text-rose-700 border-rose-200': item.status === 'Rejected'
+                    }">
+                ● {{ item.status }}
+              </span>
+            </td>
+
+            <!-- Approver -->
+            <td class="py-3 px-4 whitespace-nowrap text-[11px] text-slate-500">
+              {{ item.currentApproverRole }}
+            </td>
+            </tr>
+            }
+            }
+            </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- File Claim Modal with Multiple Bill Upload Support -->
+        @if (showApplyModal()) {
+        <div
+          class="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150"
+          (click)="showApplyModal.set(false)">
+          <div
+            class="bg-white rounded-lg shadow-xl border border-slate-200 w-full max-w-lg my-auto max-h-[calc(100vh-2rem)] sm:max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+            (click)="$event.stopPropagation()">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-4 border-b border-slate-200 bg-white shrink-0">
+              <div class="flex items-center gap-2">
+                <svg lucideReceipt class="w-4 h-4 text-orange-500"></svg>
+                <h3 class="text-sm font-bold text-slate-900">File Expense Reimbursement Claim</h3>
+              </div>
+              <button (click)="showApplyModal.set(false)" class="text-slate-400 hover:text-slate-700 p-1 rounded-md">
+                <svg lucideX class="w-4 h-4"></svg>
+              </button>
+            </div>
+
+            <form (ngSubmit)="handleCreate()" class="flex flex-col flex-1 overflow-hidden text-xs">
+              <div class="p-4 space-y-3.5 overflow-y-auto flex-1">
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-slate-700 font-medium mb-1">Claim Type *</label>
+                    <select [(ngModel)]="type" name="type"
+                      class="w-full px-3 py-1.5 border border-slate-300 rounded focus:ring-1 focus:ring-slate-900 outline-none bg-white text-slate-800">
+                      <option value="Expense">Reimbursement Expense</option>
+                      <option value="Travel">Business Travel Advance</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-slate-700 font-medium mb-1">Claim Amount (INR) *</label>
+                    <input type="number" required min="1" [(ngModel)]="amount" name="amount"
+                      class="w-full px-3 py-1.5 border border-slate-300 rounded focus:ring-1 focus:ring-slate-900 outline-none font-mono text-slate-800" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-slate-700 font-medium mb-1">Expense Title / Item Description *</label>
+                  <input type="text" required [(ngModel)]="title" name="title"
+                    placeholder="e.g. Client Dinner at The Leela or Flight to Mumbai Offsite"
+                    class="w-full px-3 py-1.5 border border-slate-300 rounded focus:ring-1 focus:ring-slate-900 outline-none text-slate-800" />
+                </div>
+
+                <div>
+                  <label class="block text-slate-700 font-medium mb-1">Expense Category *</label>
+                  <select [(ngModel)]="category" name="category"
+                    class="w-full px-3 py-1.5 border border-slate-300 rounded focus:ring-1 focus:ring-slate-900 outline-none bg-white text-slate-800">
+                    <option value="Client Hospitality & Dinner">Client Hospitality & Dinner</option>
+                    <option value="Professional Certification & Training">Professional Certification & Training</option>
+                    <option value="Local Conveyance / Cab Fare">Local Conveyance / Cab Fare</option>
+                    <option value="Software License / Books">Software License / Books</option>
+                    <option value="Broadband & Mobile Allowance">Broadband & Mobile Allowance</option>
+                    <option value="Client & Industry Summit">Client & Industry Summit</option>
+                    <option value="Hotel Stay & Lodging">Hotel Stay & Lodging</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-slate-700 font-medium mb-1">Business Purpose & Context *</label>
+                  <textarea rows="2" required [(ngModel)]="desc" name="desc"
+                    placeholder="Provide client name, business rationale, or project reference..."
+                    class="w-full px-3 py-1.5 border border-slate-300 rounded focus:ring-1 focus:ring-slate-900 outline-none text-slate-800 leading-relaxed"></textarea>
+                </div>
+
+                <!-- MULTIPLE EXPENSE BILLS / DOCUMENT UPLOAD SECTION -->
+                <div class="pt-2 border-t border-slate-100">
+                  <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-slate-800 font-bold flex items-center gap-1.5">
+                      <svg lucidePaperclip class="w-3.5 h-3.5 text-orange-600"></svg>
+                      <span>Upload Expense Bills & GST Invoices (Multiple Allowed) *</span>
+                    </label>
+                    <span class="text-[11px] font-mono text-slate-400">{{ attachments().length }} attached</span>
+                  </div>
+
+                  <!-- Hidden File Input -->
+                  <input #fileUploadInput type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                    (change)="onFilesSelected($event)" class="hidden" />
+
+                  <!-- Clickable Upload Dropzone -->
+                  <div (click)="fileUploadInput.click()"
+                    class="p-4 border-2 border-dashed border-slate-300 hover:border-orange-500 rounded-lg bg-slate-50/70 hover:bg-orange-50/20 text-center transition-colors cursor-pointer group">
+                    <div
+                      class="w-8 h-8 rounded-full bg-slate-200 group-hover:bg-orange-100 flex items-center justify-center mx-auto text-slate-500 group-hover:text-orange-600 transition-colors mb-1.5">
+                      <svg lucideUpload class="w-4 h-4"></svg>
+                    </div>
+                    <div class="font-semibold text-slate-700 text-xs">
+                      Click here to upload expense receipts / bills
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">
+                      Supports PDF, PNG, JPG scans. You can select multiple bills at once.
+                    </p>
+                  </div>
+
+                  <!-- Quick Sample Buttons (Useful for testing without files on disk) -->
+                  <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                    <span class="text-[10px] text-slate-400">Quick test sample:</span>
+                    <button type="button" (click)="addQuickSampleBill('Hotel_GST_Tax_Invoice.pdf', '1.4 MB')"
+                      class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-medium rounded transition-colors">
+                      + Hotel Bill
+                    </button>
+                    <button type="button" (click)="addQuickSampleBill('Flight_Boarding_Ticket.pdf', '980 KB')"
+                      class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-medium rounded transition-colors">
+                      + Flight Ticket
+                    </button>
+                    <button type="button" (click)="addQuickSampleBill('Uber_Airport_Cab_Receipt.pdf', '320 KB')"
+                      class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-medium rounded transition-colors">
+                      + Cab Bill
+                    </button>
+                  </div>
+
+                  <!-- Uploaded Files Chip List -->
+                  @if (attachments().length > 0) {
+                  <div class="mt-3 space-y-1.5">
+                    <div class="text-[11px] font-semibold text-slate-700">Bills attached to this claim:</div>
+                    <div class="space-y-1 max-h-36 overflow-y-auto">
+                      @for (att of attachments(); track att.name; let i = $index) {
+                      <div
+                        class="flex items-center justify-between p-2 bg-slate-100/90 rounded border border-slate-200 text-xs">
+                        <div class="flex items-center gap-2 truncate pr-2">
+                          <svg lucideFileText class="w-3.5 h-3.5 text-orange-600 shrink-0"></svg>
+                          <span class="font-medium text-slate-800 truncate">{{ att.name }}</span>
+                          <span class="text-[10px] text-slate-400 font-mono shrink-0">({{ att.size }})</span>
+                        </div>
+                        <button type="button" (click)="removeAttachment(i)"
+                          class="text-rose-500 hover:text-rose-700 p-1 hover:bg-rose-50 rounded transition-colors shrink-0"
+                          title="Remove this bill">
+                          <svg lucideTrash2 class="w-3.5 h-3.5"></svg>
+                        </button>
+                      </div>
+                      }
+                    </div>
+                  </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Modal Footer -->
+              <div class="flex justify-end gap-2 p-4 border-t border-slate-200 bg-slate-50/60 shrink-0">
+                <button type="button" (click)="showApplyModal.set(false)"
+                  class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded hover:bg-slate-50 transition-colors cursor-pointer">
+                  Cancel
+                </button>
+                <button type="submit" [disabled]="!title.trim() || !desc.trim() || amount <= 0"
+                  class="px-3.5 py-1.5 bg-slate-900 text-white rounded font-semibold text-xs hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-xs">
+                  Submit Claim & Bills
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        }
+
+        <!-- BILL PREVIEW MODAL -->
+        @if (previewDoc()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+          (click)="closePreview()">
+          <div class="bg-white rounded-lg max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden"
+            (click)="$event.stopPropagation()">
+            <div class="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
+              <div class="flex items-center gap-2">
+                <svg lucideFileText class="w-4 h-4 text-orange-600"></svg>
+                <h3 class="text-sm font-bold text-slate-900 truncate max-w-xs">{{ previewDoc()?.name }}</h3>
+              </div>
+              <button (click)="closePreview()" class="text-slate-400 hover:text-slate-700">
+                <svg lucideX class="w-4 h-4"></svg>
+              </button>
+            </div>
+
+            <div class="p-6 text-center space-y-3">
+              <div
+                class="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto">
+                <svg lucideReceipt class="w-8 h-8"></svg>
+              </div>
+              <div>
+                <div class="font-bold text-slate-800 text-sm">{{ previewDoc()?.name }}</div>
+                <div class="text-xs text-slate-400 font-mono mt-0.5">File Size: {{ previewDoc()?.size }} · Valid
+                  Verified Bill</div>
+              </div>
+              <p class="text-xs text-slate-500 bg-slate-50 p-3 rounded border border-slate-200">
+                This official expense bill receipt was securely uploaded and verified by the employee for manager and
+                finance authorization.
+              </p>
+            </div>
+
+            <div class="flex justify-end p-4 border-t border-slate-200 bg-slate-50/60">
+              <button type="button" (click)="closePreview()"
+                class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded hover:bg-slate-50 transition-colors">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
